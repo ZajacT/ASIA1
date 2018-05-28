@@ -1,12 +1,14 @@
 Package: ASIA1
 Title: Pakiet do kontroli danych rekrutacyjnych
-Version: 0.0.0.9000
-Authors@R: person("Tomasz", "Last", email = "t.zajac@uw.edu.pl", role = c("aut", "cre"))
+Version: 0.1.0
+Authors@R: c(person("Tomasz", "Zając", email = "t.zajac@uw.edu.pl", role = c("aut", "cre")),
+             person("Tomasz", "Żółtak", email = "tomek@zozlak.org", role = c("aut")))
 Description: Sprawdza poprawność danych wprowadzonych do systemu IRK przez komisje rekrutacyjne. Generuje podstawowe zestawienia dotyczące naboru na poszczególne kierunki.
 Depends: R (>= 3.5.0)
 Imports:
-  dplyr
+  magrittr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Suggests: testthat covr
+Suggests: testthat
+RoxygenNote: 6.0.1
