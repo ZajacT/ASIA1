@@ -6,14 +6,13 @@
 #' @param values numeric vector of values
 #' @param groups vector of groups
 #' @return data.frame with groups names in first column and average values per group in the second one
+#' @importFrom dplyr filter group_by summarise ungroup
 #' @export
-
-nblprzzak = function(daneIRK,kierunki){
-  require(dplyr)
-
-  REKKIER<-daneIRK %>% filter(zakwalifikowany!="1" & przyjety=="1") %>% group_by(.[,kierunki]) %>% 
-    summarise(
-      NBLPRZZAK=n()
-    )
-  return(as.data.frame(REKKIER))
+nblprzzak <- function(daneIRK, kierunki){
+  daneIRK %>%
+    filter(!(zakwalifikowany %in% "1") & przyjety %in% "1") %>%
+    group_by(.[,kierunki]) %>%
+    summarise(NBLPRZZAK = n()) %>%
+    ungroup() %>%
+    return()
 }
