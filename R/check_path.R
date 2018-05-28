@@ -10,7 +10,7 @@ check_path <- function(file, param_name = "") {
   param_name <- ifelse(nchar(param_name) > 0,
                        paste0(" '", param_name, "'"),
                        param_name)
-  if (!is.character(file) | length(file) > 1) {
+  if (!is.character(file) | length(file) != 1) {
     stop("Argument",  param_name,
          " musi zostać podany jako ciąg znaków (ściśle: jednoelementowy wektor tekstowy) opisujący ścieżkę do pliku.",
          call. = FALSE)

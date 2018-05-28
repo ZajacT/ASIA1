@@ -1,5 +1,5 @@
 #' @title Checking the correctness of a recrutation data
-#' @description We should write somethin here
+#' @description We should write something here
 #' @param registrations optionally path to the file with data on registrations
 #' @param scores optionally path to the file with data on recruitment scores
 #' @param exams optionally path to the file with data on examination scores
