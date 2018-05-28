@@ -3,6 +3,10 @@
 #' @param registrations optionally path to the file with data on registrations
 #' @param scores optionally path to the file with data on recruitment scores
 #' @param exams optionally path to the file with data on examination scores
+#' @param groupingVariable name of a grouping variable as a string or as an
+#' expression
+#' @param aggregatingVariable name of (to be described) variable as a string or
+#' as an expression
 #' @details
 #' Location of files contaninig the data to be checked can be described
 #' noninteractively with function arguments described above or - if any of this
@@ -13,7 +17,8 @@
 #'   check_data()
 #' }
 #' @export
-check_data <- function(registrations = NULL, scores = NULL, exams = NULL) {
+check_data <- function(registrations = NULL, scores = NULL, exams = NULL,
+                       groupingVariable, aggregatingVariable = "studia") {
   if (is.null(registrations)) {
     registrations <- file_choose("o rekrutacjach")
   }

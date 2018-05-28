@@ -4,7 +4,8 @@
 \alias{check_data}
 \title{Checking the correctness of a recrutation data}
 \usage{
-check_data(registrations = NULL, scores = NULL, exams = NULL)
+check_data(registrations = NULL, scores = NULL, exams = NULL,
+  groupingVariable, aggregatingVariable = "studia")
 }
 \arguments{
 \item{registrations}{optionally path to the file with data on registrations}
@@ -12,12 +13,18 @@ check_data(registrations = NULL, scores = NULL, exams = NULL)
 \item{scores}{optionally path to the file with data on recruitment scores}
 
 \item{exams}{optionally path to the file with data on examination scores}
+
+\item{groupingVariable}{name of a grouping variable as a string or as an
+expression}
+
+\item{aggregatingVariable}{name of (to be described) variable as a string or
+as an expression}
 }
 \value{
 Function retruns nothing.
 }
 \description{
-We should write somethin here
+We should write something here
 }
 \details{
 Location of files contaninig the data to be checked can be described
