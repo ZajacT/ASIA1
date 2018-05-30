@@ -27,6 +27,11 @@ read_file <- function(file) {
                       error = function(e) {stop("Nie udało się wczytać pliku.")})
       if (ncol(try) > 1) break
     }
+    if (ncol(try) <= 1) {
+      stop(paste0("Nieznany separator pól w pliku CSV (obsługiwane sepratory to: ',', ';' i tabulacja).",
+                  "(Problem dotyczy pliku: '", sub(".*[/\\]", "", file), "')"),
+           call. = FALSE)
+    }
     # reading the whole file
     read.table(file, header = TRUE, sep = sep, colClasses = "character",
                encoding = "UTF-8") %>%

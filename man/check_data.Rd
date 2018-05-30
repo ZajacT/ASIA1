@@ -4,11 +4,13 @@
 \alias{check_data}
 \title{Checking the correctness of a recrutation data}
 \usage{
-check_data(registrations = NULL, scores = NULL, exams = NULL,
-  dictionary = NULL, groupingVariable = NULL,
-  baseGroupingVariable = "studia")
+check_data(groupingVariable, registrations = NULL, scores = NULL,
+  exams = NULL, dictionary = NULL, baseGroupingVariable = "studia")
 }
 \arguments{
+\item{groupingVariable}{optionally name of a grouping variable that should be
+used in analysis given as a string or as an expression}
+
 \item{registrations}{optionally path to the file with data on registrations}
 
 \item{scores}{optionally path to the file with data on recruitment scores}
@@ -18,14 +20,11 @@ check_data(registrations = NULL, scores = NULL, exams = NULL,
 \item{dictionary}{optionally path to the file with data containing additional
 informations about registrations}
 
-\item{groupingVariable}{optionally name of a grouping variable that should be
-used in analysis given as a string or as an expression}
-
 \item{baseGroupingVariable}{name of (to be described) variable given as
 a string or as an expression}
 }
 \value{
-Function retruns nothing.
+Function returns nothing.
 }
 \description{
 We should write something here
