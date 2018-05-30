@@ -8,7 +8,7 @@
 #' @param yDescription optionally a description of what is \code{y}  (for
 #' purpose of providing informative warninig message)
 #' @return Data frame returned by \code{left_join(x, y)}.
-#' @importFrom dplyr anti_join left_join
+#' @importFrom dplyr anti_join distinct left_join select
 join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
   stopifnot(is.data.frame(x), is.data.frame(y))
   stopifnot(is.character(xDescription), length(xDescription) == 1,
@@ -20,6 +20,18 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
   }
   cat("Łączenie zostanie dokonane na podstawie wartości zmiennej/zmiennych: '",
       paste(joiningBy, collapse = "', '"), "'.\n", sep = "")
+  if (select(x, joiningBy) %>% distinct %>% nrow() != nrow(x)) {
+    stop(paste0("Łączenie nie może zostać przeprowadzone, bo ",
+                ifelse(length(joiningBy) > 1, "kombinacje wartości ww. kolumn",
+                       "wartości w ww. kolumnie"),
+                " nie są unikalne w ", xDescription, "."))
+  }
+  if (select(y, joiningBy) %>% distinct %>% nrow() != nrow(y)) {
+    stop(paste0("Łączenie nie może zostać przeprowadzone, bo ",
+                ifelse(length(joiningBy) > 1, "kombinacje wartości ww. kolumn",
+                       "wartości w ww. kolumnie"),
+                " nie są unikalne w ", yDescription, "."))
+  }
 
   check <- suppressMessages(anti_join(y, x))
   if (nrow(check) > 0) {
