@@ -81,17 +81,16 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   #|-> Here starts summarising the data
   #-----------------------------------------------------------------------------
-  # mutating
-  registrations <- registrations %>%
+  results <- registrations %>%
     group_by(!!groupingVariable) %>%
+    # mutating
     mutate(wynik = suppressWarnings(as.numeric(wynik)),
            # below Inf will be assigned to groups
            # with no (qualified candidates with non-missing scores)
            MINWYN = suppressWarnings(
-             min(wynik[zakwalifikowany %in% "1" & !is.na(wynik)])))
-  # summarising
-  results <- registrations %>%
-    group_by(!!groupingVariable) %>%
+             min(wynik[zakwalifikowany %in% "1" & !is.na(wynik)]))
+    ) %>%
+    # summarising
     summarise(
       NREJ = n(),
       NKAN = sum(czy_oplacony %in% "1"),
