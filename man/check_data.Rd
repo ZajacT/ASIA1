@@ -5,7 +5,8 @@
 \title{Checking the correctness of a recrutation data}
 \usage{
 check_data(registrations = NULL, scores = NULL, exams = NULL,
-  groupingVariable, aggregatingVariable = "studia")
+  dictionary = NULL, groupingVariable = NULL,
+  baseGroupingVariable = "studia")
 }
 \arguments{
 \item{registrations}{optionally path to the file with data on registrations}
@@ -14,11 +15,14 @@ check_data(registrations = NULL, scores = NULL, exams = NULL,
 
 \item{exams}{optionally path to the file with data on examination scores}
 
-\item{groupingVariable}{name of a grouping variable as a string or as an
-expression}
+\item{dictionary}{optionally path to the file with data containing additional
+informations about registrations}
 
-\item{aggregatingVariable}{name of (to be described) variable as a string or
-as an expression}
+\item{groupingVariable}{optionally name of a grouping variable that should be
+used in analysis given as a string or as an expression}
+
+\item{baseGroupingVariable}{name of (to be described) variable given as
+a string or as an expression}
 }
 \value{
 Function retruns nothing.

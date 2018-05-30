@@ -2,3 +2,5 @@
 
 export(check_data)
 importFrom(magrittr,"%>%")
+importFrom(readxl,read_xlsx)
+importFrom(utils,read.table)

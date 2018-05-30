@@ -23,23 +23,24 @@ check_data <- function(registrations = NULL, scores = NULL, exams = NULL,
                        dictionary = NULL, groupingVariable = NULL,
                        baseGroupingVariable = "studia") {
   if (is.null(registrations)) {
-    registrations <- file_choose("o rekrutacjach")
+    registrations <- choose_file("o rekrutacjach")
   }
   check_path(registrations, "registrations")
+  registrations = read_file(registrations)
   if (is.null(scores)) {
-    scores <- file_choose("o punktach rekrutacyjnych")
+    scores <- choose_file("o punktach rekrutacyjnych")
   }
   check_path(scores, "scores")
   if (is.null(exams)) {
-    exams <- file_choose("o wynikach egzaminów")
+    exams <- choose_file("o wynikach egzaminów")
   }
   check_path(exams, "exams")
   if (is.null(dictionary)) {
-    dictionary <- file_choose("o słowniku")
+    dictionary <- choose_file("o słowniku")
   }
   check_path(dictionary, "dictionary")
 
 
 
-  return(NULL)
+  return(registrations)
 }
