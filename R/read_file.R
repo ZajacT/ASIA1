@@ -6,6 +6,7 @@
 #' @return Data frame with a data that has been read from a file.
 #' @importFrom magrittr %>%
 #' @importFrom readxl read_xlsx
+#' @importFrom rlang set_names
 #' @importFrom utils read.table
 read_file <- function(file) {
   stopifnot(is.character(file), length(file) == 1)
@@ -17,8 +18,7 @@ read_file <- function(file) {
   }
 
   if (fileType %in% "xlsx") {
-    read_xlsx(file, col_types = "text") %>%
-      return()
+    file <- read_xlsx(file, col_types = "text")
   } else if (fileType %in% "csv") {
     # guessing the separator
     for (sep in c(";", ",", "\t")) {
@@ -33,8 +33,10 @@ read_file <- function(file) {
            call. = FALSE)
     }
     # reading the whole file
-    read.table(file, header = TRUE, sep = sep, colClasses = "character",
-               encoding = "UTF-8") %>%
-      return()
+    file <- read.table(file, header = TRUE, sep = sep, colClasses = "character",
+                       encoding = "UTF-8")
   }
+  file %>%
+    set_names(names(.) %>% tolower()) %>%
+    return()
 }
