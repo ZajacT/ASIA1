@@ -6,7 +6,7 @@
 #' \code{about} can help to make this error more informative).
 #' @return String containing a path to a file.
 #' @importFrom magrittr %>%
-file_choose <- function(about = "") {
+choose_file <- function(about = "") {
   stopifnot(is.character(about), length(about) == 1)
 
   cat("Wybierz plik z danymi", ifelse(nchar(about) > 0, " ", ""), about, ".\n",
