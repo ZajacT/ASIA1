@@ -37,6 +37,6 @@ read_file <- function(file) {
                        encoding = "UTF-8")
   }
   file %>%
-    set_names(names(.) %>% tolower()) %>%
+    set_names(names(file) %>% tolower()) %>%
     return()
 }

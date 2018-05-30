@@ -9,7 +9,7 @@ check_data(groupingVariable, registrations = NULL, scores = NULL,
 }
 \arguments{
 \item{groupingVariable}{optionally name of a grouping variable that should be
-used in analysis given as a string or as an expression}
+used in analysis given as a string or as a name/symbol}
 
 \item{registrations}{optionally path to the file with data on registrations}
 
@@ -21,7 +21,7 @@ used in analysis given as a string or as an expression}
 informations about registrations}
 
 \item{baseGroupingVariable}{name of (to be described) variable given as
-a string or as an expression}
+a string or as a name/symbol}
 }
 \value{
 Function returns nothing.

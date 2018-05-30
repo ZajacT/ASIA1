@@ -1,14 +1,14 @@
 #' @title Checking the correctness of a recrutation data
 #' @description We should write something here
 #' @param groupingVariable optionally name of a grouping variable that should be
-#' used in analysis given as a string or as an expression
+#' used in analysis given as a string or as a name/symbol
 #' @param registrations optionally path to the file with data on registrations
 #' @param scores optionally path to the file with data on recruitment scores
 #' @param exams optionally path to the file with data on examination scores
 #' @param dictionary optionally path to the file with data containing additional
 #' informations about registrations
 #' @param baseGroupingVariable name of (to be described) variable given as
-#' a string or as an expression
+#' a string or as a name/symbol
 #' @details
 #' Location of files contaninig the data to be checked can be described
 #' noninteractively with function arguments described above or - if any of this
@@ -18,6 +18,7 @@
 #' \dontrun{
 #'   check_data()
 #' }
+#' @importFrom dplyr group_by mutate n summarise
 #' @importFrom rlang ensym
 #' @export
 check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
@@ -74,6 +75,42 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
                                    "danych o rekrutacjach",
                                    "danych o punktach rekrutacyjnych")
 
-  summarising_template(registrations, groupingVariable) %>%
-    return()
+  cat("--------------------\n",
+      "Obliczanie statystyk.\n",
+      sep = "")
+  #-----------------------------------------------------------------------------
+  #|-> Here starts summarising the data
+  #-----------------------------------------------------------------------------
+  # mutating
+  registrations <- registrations %>%
+    group_by(!!groupingVariable) %>%
+    mutate(wynik = suppressWarnings(as.numeric(wynik)),
+           # below Inf will be assigned to groups
+           # with no (qualified candidates with non-missing scores)
+           MINWYN = suppressWarnings(
+             min(wynik[zakwalifikowany %in% "1" & !is.na(wynik)])))
+  # summarising
+  results <- registrations %>%
+    group_by(!!groupingVariable) %>%
+    summarise(
+      NREJ = n(),
+      NKAN = sum(czy_oplacony %in% "1"),
+      NZAK_0 = sum(zakwalifikowany %in% "0"),
+      NZAK_1 = sum(zakwalifikowany %in% "1"),
+      NZAK_R = sum(zakwalifikowany %in% "R"),
+      NZAK_BD = NREJ - NZAK_0 - NZAK_1 - NZAK_R,
+      NPRZ_0 = sum(przyjety %in% "0"),
+      NPRZ_1 = sum(przyjety %in% "1"),
+      NPRZ_R = sum(przyjety %in% "R"),
+      NPRZ_BD = NREJ - NPRZ_0 - NPRZ_1 - NPRZ_R,
+      NBLPKT = sum(wynik < 0, na.rm = TRUE),
+      NBLZAKKAN = sum(!(czy_oplacony %in% "1") & zakwalifikowany %in% "1"),
+      NBLPRZZAK = sum(!(zakwalifikowany %in% "1") & przyjety %in% "1"),
+      MINWYN = ifelse(is.finite(MINWYN[1]), MINWYN[1], NA),
+      NBLZAKPKT = sum(zakwalifikowany %in% "1" & wynik >= MINWYN & !is.na(wynik))
+    )
+  #-----------------------------------------------------------------------------
+  #|-> Here ends summarising the data
+  #-----------------------------------------------------------------------------
+  return(results)
 }
