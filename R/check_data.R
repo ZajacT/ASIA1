@@ -108,7 +108,8 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
       NBLPRZZAK = sum(!(zakwalifikowany %in% "1") & przyjety %in% "1"),
       MINWYN = ifelse(is.finite(MINWYN[1]), MINWYN[1], NA),
       NBLZAKPKT = sum(zakwalifikowany %in% "1" & wynik >= MINWYN & !is.na(wynik))
-    )
+    ) %>%
+    ungroup()
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
