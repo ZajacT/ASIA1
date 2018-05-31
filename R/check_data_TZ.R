@@ -137,7 +137,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
     full_join(results)
   
   #-----------------------------------------------------------------------------
-  #|-> Here ends summarising the data
+  #|-> Here ends summarising the data 
   #-----------------------------------------------------------------------------
   return(results)
 }
