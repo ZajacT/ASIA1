@@ -18,7 +18,7 @@
 #' \dontrun{
 #'   check_data()
 #' }
-#' @importFrom dplyr group_by mutate n summarise
+#' @importFrom dplyr full_join group_by mutate n summarise
 #' @importFrom rlang ensym
 #' @export
 check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
@@ -92,23 +92,33 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
     ) %>%
     # summarising
     summarise(
-      NREJ = n(),
-      NKAN = sum(czy_oplacony %in% "1"),
-      NZAK_0 = sum(zakwalifikowany %in% "0"),
+      NREJ = n(), # number of registrations
+      NKAN = sum(czy_oplacony %in% "1"), # number of candidates
+      NZAK_0 = sum(zakwalifikowany %in% "0"), # number of qualified cand.
       NZAK_1 = sum(zakwalifikowany %in% "1"),
       NZAK_R = sum(zakwalifikowany %in% "R"),
       NZAK_BD = NREJ - NZAK_0 - NZAK_1 - NZAK_R,
-      NPRZ_0 = sum(przyjety %in% "0"),
+      NPRZ_0 = sum(przyjety %in% "0"), # number of admitted cand.
       NPRZ_1 = sum(przyjety %in% "1"),
       NPRZ_R = sum(przyjety %in% "R"),
       NPRZ_BD = NREJ - NPRZ_0 - NPRZ_1 - NPRZ_R,
-      NBLPKT = sum(wynik < 0, na.rm = TRUE),
+      NBLPKT = sum(wynik < 0, na.rm = TRUE), # errors
       NBLZAKKAN = sum(!(czy_oplacony %in% "1") & zakwalifikowany %in% "1"),
       NBLPRZZAK = sum(!(zakwalifikowany %in% "1") & przyjety %in% "1"),
       MINWYN = ifelse(is.finite(MINWYN[1]), MINWYN[1], NA),
       NBLZAKPKT = sum(zakwalifikowany %in% "1" & wynik >= MINWYN & !is.na(wynik))
     ) %>%
     ungroup()
+  # adding limits
+  dictionary <- dictionary %>%
+    group_by(!!groupingVariable) %>%
+    summarise(
+      LIM_OG = sum(limitOG, na.rm = TRUE),
+      LIM_P = sum(limitP, na.rm = TRUE),
+      LIM_C = sum(limitC, na.rm = TRUE)
+    ) %>%
+    ungroup()
+  results <- suppressMessages(full_join(dictionary, results))
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
