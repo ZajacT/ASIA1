@@ -1,6 +1,5 @@
 # http://docs.travis-ci.com/user/languages/r/
 language: r
-
 cache: packages
 
 r:
@@ -13,7 +12,11 @@ warnings_are_errors: false
 
 notifications:
   email:
-    - t.zajac@uw.edu.pl
-    
+    recipients:
+      - t.zajac@uw.edu.pl
+      - tomek@zozlak.org
+    on_success: change # default: change
+    on_failure: always # default: always
+
 r_github_packages:
   - ZajacT/ASIA1
