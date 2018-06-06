@@ -1,14 +1,16 @@
 #' @title Joining two data frames
 #' @description Simple routine designed to find out (and report) whether two
-#' data frames join each other 1:1 or not before performing left join.
+#' data frames have unique combinations of values of common variables and
+#' whether all rows in \code{x} has pair(s) in \code{y} and \emph{vice versa}
+#' before performing full join.
 #' @param x data frame
 #' @param y data frame
 #' @param xDescription optionally a description of what is \code{x} (for
 #' purpose of providing informative warninig message)
 #' @param yDescription optionally a description of what is \code{y}  (for
 #' purpose of providing informative warninig message)
-#' @return Data frame returned by \code{left_join(x, y)}.
-#' @importFrom dplyr anti_join distinct left_join select
+#' @return Data frame returned by \code{full_join(x, y)}.
+#' @importFrom dplyr anti_join distinct full_join select
 join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
   stopifnot(is.data.frame(x), is.data.frame(y))
   stopifnot(is.character(xDescription), length(xDescription) == 1,
@@ -33,28 +35,28 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
                 " nie są unikalne w ", yDescription, "."))
   }
 
-  check <- suppressMessages(anti_join(y, x))
-  if (nrow(check) > 0) {
+  checkY <- suppressMessages(anti_join(y, x))
+  if (nrow(checkY) > 0) {
     warning(paste0("W ", yDescription, " występuje ",
-                   format(nrow(check), big.mark = "'"),
+                   format(nrow(checkY), big.mark = "'"),
                    " wiersz(e/y), które nie mają odpowiednika w ",
                    xDescription,
                    ".\n\nNumery wierszy (w pliku), których dotyczy ten problem:\n",
-                   paste(strwrap(paste(as.numeric(rownames(check)) + 1,
+                   paste(strwrap(paste(as.numeric(rownames(checkY)) + 1,
                                        collapse = ", "),
                                  prefix = " "),
                          collapse = "\n")),
             call. = FALSE, immediate. = TRUE)
     cat("\n")
   }
-  check <- suppressMessages(anti_join(x, y))
-  if (nrow(check) > 0) {
+  checkX <- suppressMessages(anti_join(x, y))
+  if (nrow(checkX) > 0) {
     warning(paste0("W ", xDescription, " występuje ",
-                   format(nrow(check), big.mark = "'"),
+                   format(nrow(checkX), big.mark = "'"),
                    " wiersz(e/y), które nie mają odpowiednika w ",
                    yDescription,
                    ".\n\nNumery wierszy (w pliku), których dotyczy ten problem:\n",
-                   paste(strwrap(paste(as.numeric(rownames(check)) + 1,
+                   paste(strwrap(paste(as.numeric(rownames(checkX)) + 1,
                                        collapse = ", "),
                                  prefix = " "),
                          collapse = "\n")),
@@ -62,7 +64,9 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
     cat("\n")
   }
   cat("Dane zostaną przyłączone do",
-      format(nrow(x) - nrow(check), big.mark = "'"), "wierszy.\n")
-  suppressMessages(left_join(x, y)) %>%
+      format(nrow(x) - nrow(checkX), big.mark = "'"), "wierszy w", xDescription,
+      "i", format(nrow(y) - nrow(checkY), big.mark = "'"), "wierszy w",
+      yDescription, ".\n")
+  suppressMessages(full_join(x, y)) %>%
     return()
 }

@@ -18,9 +18,11 @@ purpose of providing informative warninig message)}
 purpose of providing informative warninig message)}
 }
 \value{
-Data frame returned by \code{left_join(x, y)}.
+Data frame returned by \code{full_join(x, y)}.
 }
 \description{
 Simple routine designed to find out (and report) whether two
-data frames join each other 1:1 or not before performing left join.
+data frames have unique combinations of values of common variables and
+whether all rows in \code{x} has pair(s) in \code{y} and \emph{vice versa}
+before performing full join.
 }

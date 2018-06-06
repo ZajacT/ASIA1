@@ -12,8 +12,8 @@
 #' should be (left-) joined (if defined, function will return a joined object)
 #' @param ... calls describing computations to be performed
 #' @details In a function call as a parameter \code{g} typically will be given
-#' an object returned by \code{\link[rlang]{ensym}} or
-#' \code{\link[rlang]{enexpr}} functions.
+#' an object returned by \code{\link[rlang:quotation]{ensym}} or
+#' \code{\link[rlang:quotation]{enexpr}} functions.
 #' @return Tibble.
 #' @importFrom dplyr filter group_by summarise ungroup
 #' @importFrom rlang enexpr enexprs

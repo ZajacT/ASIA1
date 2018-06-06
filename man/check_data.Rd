@@ -5,7 +5,8 @@
 \title{Checking the correctness of a recrutation data}
 \usage{
 check_data(groupingVariable, registrations = NULL, scores = NULL,
-  exams = NULL, dictionary = NULL, baseGroupingVariable = "studia")
+  exams = NULL, dictionary = NULL, output = NULL,
+  baseGroupingVariable = "studia")
 }
 \arguments{
 \item{groupingVariable}{optionally name of a grouping variable that should be
@@ -20,19 +21,26 @@ used in analysis given as a string or as a name/symbol}
 \item{dictionary}{optionally path to the file with data containing additional
 informations about registrations}
 
+\item{output}{optionally path to the file in which results will be saved;
+if \code{NA} is given as a value of this parameter, results won't be saved
+to a file}
+
 \item{baseGroupingVariable}{name of (to be described) variable given as
 a string or as a name/symbol}
 }
 \value{
-Function returns nothing.
+Data frame (tibble) with computed summary statistics - the same as
+written to a file described with the \code{output} parameter (data frame is
+returned invisibly).
 }
 \description{
 We should write something here
 }
 \details{
-Location of files contaninig the data to be checked can be described
-noninteractively with function arguments described above or - if any of this
-arguments is omitted - interactively with a system file-selection dialog.
+Location of files contaninig the data to be checked and location of file
+in which results will be saved can be described noninteractively with
+function arguments described above or - if any of this arguments is omitted -
+interactively with a system file-selection dialog.
 }
 \examples{
 \dontrun{

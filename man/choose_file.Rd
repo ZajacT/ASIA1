@@ -4,11 +4,14 @@
 \alias{choose_file}
 \title{Selecting file to read}
 \usage{
-choose_file(about = "")
+choose_file(about = "", errorOnCancel = TRUE)
 }
 \arguments{
 \item{about}{optionally a string describing what should contain a file that
 user is supposed to select}
+
+\item{errorOnCancel}{logical value (TRUE or FALSE) - should canceling
+a file selection dialog should throw an error?}
 }
 \value{
 String containing a path to a file.

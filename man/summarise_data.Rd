@@ -31,6 +31,6 @@ should be given in a dplyr style, that is as calls.
 }
 \details{
 In a function call as a parameter \code{g} typically will be given
-an object returned by \code{\link[rlang]{ensym}} or
-\code{\link[rlang]{enexpr}} functions.
+an object returned by \code{\link[rlang:quotation]{ensym}} or
+\code{\link[rlang:quotation]{enexpr}} functions.
 }

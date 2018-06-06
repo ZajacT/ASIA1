@@ -4,10 +4,13 @@
 \alias{read_file}
 \title{Reading file}
 \usage{
-read_file(file)
+read_file(file, columnsToCharacter = TRUE)
 }
 \arguments{
 \item{file}{path to a file}
+
+\item{columnsToCharacter}{logical value (TRUE or FALSE) - should all columns
+be read as text (character)?}
 }
 \value{
 Data frame with a data that has been read from a file.
