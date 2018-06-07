@@ -75,6 +75,17 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
                 baseGroupingVariable, "') nie występuje w danych o rekrutacjach."))
   }
 
+  ## foreign applicants with scholarships
+  foreignsholarships <- exams %>%
+    filter(is.na(mat$egzamin)==TRUE & substr(mat$studia, nchar(mat$studia)-1, nchar(mat$studia)) == "-C" & suppressWarnings(as.numeric(wynik)) == 100) %>%
+    select(pesel,studia) %>%
+    mutate(styp = 1)
+
+  cat("--------------------\n",
+      "Dopisanie informacji o byciu stypendystą zagranicznym do danych o rekrutacjach.\n",
+      sep = "")
+  registrations <- suppressWarnings(left_join(registrations,foreignsholarships))
+
   cat("--------------------\n",
       "Łączenie pliku z danymi o rekrutacjach z danymi o punktach rekrutacyjnych.\n",
       sep = "")
@@ -109,6 +120,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
       NPRZ_1 = sum(przyjety %in% "1"),
       NPRZ_R = sum(przyjety %in% "R"),
       NPRZ_BD = NREJ - NPRZ_0 - NPRZ_1 - NPRZ_R,
+      NPRZ_OBC_STYP = sum(przyjety %in% "1" & styp %in% "1"),
       NBLPKT = sum(wynik < 0, na.rm = TRUE), # errors
       NBLZAKKAN = sum(!(czy_oplacony %in% "1") & zakwalifikowany %in% "1"),
       NBLPRZZAK = sum(!(zakwalifikowany %in% "1") & przyjety %in% "1"),
