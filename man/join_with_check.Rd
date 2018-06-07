@@ -4,7 +4,8 @@
 \alias{join_with_check}
 \title{Joining two data frames}
 \usage{
-join_with_check(x, y, xDescription = "x", yDescription = "y")
+join_with_check(x, y, xDescription = "x", yDescription = "y",
+  xCheckAllMatchesY = TRUE, yCheckAllMatchesX = TRUE)
 }
 \arguments{
 \item{x}{data frame}
@@ -16,6 +17,12 @@ purpose of providing informative warninig message)}
 
 \item{yDescription}{optionally a description of what is \code{y}  (for
 purpose of providing informative warninig message)}
+
+\item{xCheckAllMatchesY}{logical value (\code{TRUE} or \code{FALSE}) - should
+function check whether all rows in \code{x} match some row in \code{y}}
+
+\item{yCheckAllMatchesX}{logical value (\code{TRUE} or \code{FALSE}) - should
+function check whether all rows in \code{y} match some row in \code{x}}
 }
 \value{
 Data frame returned by \code{full_join(x, y)}.

@@ -76,15 +76,18 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   }
 
   ## foreign applicants with scholarships
-  foreignsholarships <- exams %>%
-    filter(is.na(mat$egzamin)==TRUE & substr(mat$studia, nchar(mat$studia)-1, nchar(mat$studia)) == "-C" & suppressWarnings(as.numeric(wynik)) == 100) %>%
-    select(pesel,studia) %>%
-    mutate(styp = 1)
-
   cat("--------------------\n",
       "Dopisanie informacji o byciu stypendystą zagranicznym do danych o rekrutacjach.\n",
       sep = "")
-  registrations <- suppressWarnings(left_join(registrations,foreignsholarships))
+  foreignSholarships <- exams %>%
+    filter(is.na(egzamin) & grepl("-C$", studia) & grepl("^100(|[.]0+)$", wynik)) %>%
+    select(pesel, studia) %>%
+    mutate(styp = "1")
+  registrations <- join_with_check(registrations, foreignSholarships,
+                                   "danych o rekrutacjach",
+                                   "danych o stypendystach zagranicznych",
+                                   xCheckAllMatchesY = FALSE) %>%
+    mutate(styp = ifelse(is.na(styp), "0" , styp))
 
   cat("--------------------\n",
       "Łączenie pliku z danymi o rekrutacjach z danymi o punktach rekrutacyjnych.\n",

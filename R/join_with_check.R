@@ -9,12 +9,21 @@
 #' purpose of providing informative warninig message)
 #' @param yDescription optionally a description of what is \code{y}  (for
 #' purpose of providing informative warninig message)
+#' @param xCheckAllMatchesY logical value (\code{TRUE} or \code{FALSE}) - should
+#' function check whether all rows in \code{x} match some row in \code{y}
+#' @param yCheckAllMatchesX logical value (\code{TRUE} or \code{FALSE}) - should
+#' function check whether all rows in \code{y} match some row in \code{x}
 #' @return Data frame returned by \code{full_join(x, y)}.
 #' @importFrom dplyr anti_join distinct full_join select
-join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
+join_with_check <- function(x, y, xDescription = "x", yDescription = "y",
+                            xCheckAllMatchesY = TRUE, yCheckAllMatchesX = TRUE) {
   stopifnot(is.data.frame(x), is.data.frame(y))
   stopifnot(is.character(xDescription), length(xDescription) == 1,
-            is.character(yDescription), length(yDescription) == 1)
+            is.character(yDescription), length(yDescription) == 1,
+            is.logical(xCheckAllMatchesY), length(xCheckAllMatchesY) == 1,
+            xCheckAllMatchesY %in% c(TRUE, FALSE),
+            is.logical(yCheckAllMatchesX), length(yCheckAllMatchesX) == 1,
+            yCheckAllMatchesX %in% c(TRUE, FALSE))
   joiningBy = intersect(names(x), names(y))
   if (length(joiningBy) == 0) {
     stop("Nie można przyłączyć ", yDescription, " do ", xDescription,
@@ -36,7 +45,7 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
   }
 
   checkY <- suppressMessages(anti_join(y, x))
-  if (nrow(checkY) > 0) {
+  if (nrow(checkY) > 0 & yCheckAllMatchesX) {
     warning(paste0("W ", yDescription, " występuje ",
                    format(nrow(checkY), big.mark = "'"),
                    " wiersz(e/y), które nie mają odpowiednika w ",
@@ -50,7 +59,7 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y") {
     cat("\n")
   }
   checkX <- suppressMessages(anti_join(x, y))
-  if (nrow(checkX) > 0) {
+  if (nrow(checkX) > 0 & xCheckAllMatchesY) {
     warning(paste0("W ", xDescription, " występuje ",
                    format(nrow(checkX), big.mark = "'"),
                    " wiersz(e/y), które nie mają odpowiednika w ",
