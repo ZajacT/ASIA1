@@ -18,8 +18,7 @@
 #' @importFrom rlang ensym
 #' @importFrom utils write.csv2
 #' @export
-foreigners <- function(registrations = NULL, scores = NULL,
-                      output = NULL) {
+foreigners <- function(registrations = NULL, scores = NULL, output = NULL) {
   if (is.null(registrations)) {
     registrations <- choose_file(" z danymi o rekrutacjach")
   }
