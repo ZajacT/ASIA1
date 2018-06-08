@@ -5,7 +5,8 @@
 \title{Joining two data frames}
 \usage{
 join_with_check(x, y, xDescription = "x", yDescription = "y",
-  xCheckAllMatchesY = TRUE, yCheckAllMatchesX = TRUE)
+  xCheckAllMatchesY = TRUE, yCheckAllMatchesX = TRUE,
+  rowsOrObservations = "rows")
 }
 \arguments{
 \item{x}{data frame}
@@ -23,6 +24,12 @@ function check whether all rows in \code{x} match some row in \code{y}}
 
 \item{yCheckAllMatchesX}{logical value (\code{TRUE} or \code{FALSE}) - should
 function check whether all rows in \code{y} match some row in \code{x}}
+
+\item{rowsOrObservations}{"rows" or "observations" (abbreviations "r" and "o"
+are accepted) - indicates how numbers of rows that do not match should be
+reported: "rows" is suitable for data coming directly from input files
+(adds 1 to reported numbers of rows to account that there is also a header
+row) while "observations" for data that has already been processed}
 }
 \value{
 Data frame returned by \code{full_join(x, y)}.

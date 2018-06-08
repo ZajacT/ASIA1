@@ -31,6 +31,16 @@
 check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
                        exams = NULL, dictionary = NULL, output = NULL,
                        baseGroupingVariable = "studia") {
+  errorGroupingVariableFormatMessage = "Zmienna grupująca musi zostać podana jako ciąg znaków (jednoelementowy wektor typu character) lub jako wyrażenie (nazwa zmiennej nie ujęta w cudzysłów)."
+  groupingVariable <-
+    tryCatch(ensym(groupingVariable),
+             error = function(e) {
+               stop(paste0("Nieprawidłowy format argumentu groupingVariable.\n",
+                           errorGroupingVariableFormatMessage))})
+  tryCatch(get("groupingVariable"),
+           error = function(e) {
+             stop("Nie podano zmiennej grupującej (argumentu 'groupingVariable').",
+                  call. = FALSE)})
   if (is.null(registrations)) {
     registrations <- choose_file(" z danymi o rekrutacjach")
   }
@@ -55,12 +65,17 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   check_input_path(dictionary, "dictionary")
   dictionary <- read_file(dictionary, columnsToCharacter = FALSE)
 
-  errorGroupingVariableFormatMessage = "Zmienna grupująca musi zostać podana jako ciąg znaków (jednoelementowy wektor typu character) lub jako wyrażenie (nazwa zmiennej nie ujęta w cudzysłów)."
-  groupingVariable <-
-    tryCatch(ensym(groupingVariable),
-             error = function(e) {
-               stop(paste0("Nieprawidłowy format argumentu groupingVariable.\n",
-                           errorGroupingVariableFormatMessage))})
+  if (is.null(output)) {
+    output <- choose_file(", w którym mają zostać zapisane wyniki (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
+                          errorOnCancel = FALSE)
+  }
+  if (!is.na(output)) {
+    output <- sub("[.]csv$", "", output) %>% paste0(".csv")
+    if (!(check_output_path(output, "output") %in% TRUE)) {
+      output <- NA
+    }
+  }
+
   if (!(as.character(groupingVariable) %in% names(registrations))) {
     stop(paste0("Zmienna grupująca podana argumentem groupingVariable ('",
                 groupingVariable, "') nie występuje w danych o rekrutacjach."))
@@ -86,7 +101,8 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   registrations <- join_with_check(registrations, foreignSholarships,
                                    "danych o rekrutacjach",
                                    "danych o stypendystach zagranicznych",
-                                   xCheckAllMatchesY = FALSE) %>%
+                                   xCheckAllMatchesY = FALSE,
+                                   rowsOrObservations = "o") %>%
     mutate(styp = ifelse(is.na(styp), "0" , styp))
 
   cat("--------------------\n",
@@ -142,8 +158,8 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
     ungroup()
   cat("Przyłączanie danych o limitach przyjęć.\n")
   results <- join_with_check(dictionary, results,
-                             "danych o rekrutacjach",
-                             "słowniku (danych o limitach przyjęć)")
+                             "słowniku (danych o limitach przyjęć)",
+                             "danych o rekrutacjach")
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
@@ -151,16 +167,6 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   cat("--------------------\n",
       "Zapisywanie wyników.\n",
       sep = "")
-  if (is.null(output)) {
-    output <- choose_file(", w którym mają zostać zapisane wyniki (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
-                          errorOnCancel = FALSE)
-  }
-  if (!is.na(output)) {
-    output <- sub("[.]csv$", "", output) %>% paste0(".csv")
-    if (!(check_output_path(output, "output") %in% TRUE)) {
-      output <- NA
-    }
-  }
   if (is.na(output)) {
     warning("Wyniki nie zostaną zapisane do pliku, ponieważ nie podano jego nazwy.",
             call. = FALSE, immediate. = TRUE)
