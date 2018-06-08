@@ -24,7 +24,7 @@
 #' \dontrun{
 #'   check_data()
 #' }
-#' @importFrom dplyr group_by mutate n summarise
+#' @importFrom dplyr group_by mutate n summarise filter
 #' @importFrom rlang ensym
 #' @importFrom utils write.csv2
 #' @export
