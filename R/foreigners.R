@@ -1,5 +1,6 @@
 #' @title Lists foreigners and their admissions status
-#' @description We should write something here
+#' @description Function lists foreigners and their admissions status and writes
+#' results to a file
 #' @param registrations optionally path to the file with data on registrations
 #' @param scores optionally path to the file with data on recruitment scores
 #' @param output optionally path to the file in which results will be saved;
@@ -10,11 +11,10 @@
 #' in which results will be saved can be described noninteractively with
 #' function arguments described above or - if any of this arguments is omitted -
 #' interactively with a system file-selection dialog.
-#' @return Data frame (tibble) with the list of foreign applicants - at the same as
+#' @return Data frame (tibble) with the list of foreign applicants - the same as
 #' written to a file described with the \code{output} parameter (data frame is
 #' returned invisibly).
-#' @examples
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter select
 #' @importFrom rlang ensym
 #' @importFrom utils write.csv2
 #' @export
@@ -25,20 +25,20 @@ foreigners <- function(registrations = NULL, scores = NULL,
   }
   check_input_path(registrations, "registrations")
   registrations <- read_file(registrations)
-  
+
   if (is.null(scores)) {
     scores <- choose_file(" z danymi o punktach rekrutacyjnych")
   }
   check_input_path(scores, "scores")
   scores <- read_file(scores)
-  
+
   cat("--------------------\n",
       "Łączenie pliku z danymi o rekrutacjach z danymi o punktach rekrutacyjnych.\n",
       sep = "")
   registrations <- join_with_check(registrations, scores,
                                    "danych o rekrutacjach",
                                    "danych o punktach rekrutacyjnych")
-  
+
   cat("--------------------\n",
       "Wyszukiwanie obserwacji.\n",
       sep = "")
@@ -46,13 +46,13 @@ foreigners <- function(registrations = NULL, scores = NULL,
   #|-> Here starts filtering data
   #-----------------------------------------------------------------------------
   results <- registrations %>%
-    select(pesel,studia,sciezka,imie,imie2,nazwisko,obywatelstwo,czy_oplacony,zakwalifikowany,przyjety,wynik) %>%
+    select(pesel, studia, sciezka, imie, imie2, nazwisko, obywatelstwo,
+           czy_oplacony, zakwalifikowany, przyjety, wynik) %>%
     filter(!(obywatelstwo %in% "PL"))
-  
   #-----------------------------------------------------------------------------
   #|-> Here ends filtering data
   #-----------------------------------------------------------------------------
-  
+
   cat("--------------------\n",
       "Zapisywanie listy\n",
       sep = "")

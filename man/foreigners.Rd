@@ -16,12 +16,13 @@ if \code{NA} is given as a value of this parameter, results won't be saved
 to a file}
 }
 \value{
-Data frame (tibble) with the list of foreign applicants - at the same as
+Data frame (tibble) with the list of foreign applicants - the same as
 written to a file described with the \code{output} parameter (data frame is
 returned invisibly).
 }
 \description{
-We should write something here
+Function lists foreigners and their admissions status and writes
+results to a file
 }
 \details{
 Location of files contaninig the data to be checked and location of file
