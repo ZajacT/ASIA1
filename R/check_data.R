@@ -95,7 +95,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
       "Dopisanie informacji o byciu stypendystą zagranicznym do danych o rekrutacjach.\n",
       sep = "")
   foreignSholarships <- exams %>%
-    filter(is.na(egzamin) & grepl("-C$", studia) & grepl("^100(|[.]0+)$", wynik)) %>%
+    filter(is.na(egzamin) & grepl("-C$", studia) & (grepl("^100(|[.]0+)$", wynik) | grepl("^100(|[,]0+)$", wynik))) %>%
     select(pesel, studia) %>%
     mutate(styp = "1")
   registrations <- join_with_check(registrations, foreignSholarships,
