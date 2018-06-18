@@ -131,6 +131,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
     summarise(
       NREJ = n(), # number of registrations
       NKAN = sum(czy_oplacony %in% "1"), # number of candidates
+      N_BEZ_OPL = NREJ - NKAN, # number of registrations with unpaid fee
       NZAK_0 = sum(zakwalifikowany %in% "0"), # number of qualified cand.
       NZAK_1 = sum(zakwalifikowany %in% "1"),
       NZAK_R = sum(zakwalifikowany %in% "R"),
