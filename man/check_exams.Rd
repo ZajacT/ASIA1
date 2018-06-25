@@ -13,9 +13,9 @@ check_exams(exams = exams)
 data frame
 }
 \description{
-Function checks if data on exams are complete and
-correct. If no critical eroors are detected, functions gives user a choice
-whether to correct detected minor issues detected in the data, or to add
-columns indicating which observations should be fixed. Finally it returns
-a data frame with corrected data or columns indicating problems.
+Function checks if data on exams are complete and correct. If no
+critical eroors are detected, functions gives user a choice whether to
+correct detected minor issues detected in the data, or to add columns
+indicating which observations should be fixed. Finally it returns a data
+frame with corrected data or columns indicating problems.
 }

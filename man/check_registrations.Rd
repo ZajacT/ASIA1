@@ -4,19 +4,6 @@
 \alias{check_registrations}
 \title{Checks if data on registretions are complete and correct}
 \usage{
-<<<<<<< HEAD
-check_registrations(registrations = registrations)
-}
-\arguments{
-\item{registrations}{optionally path to the file with data on registrations}
-}
-\value{
-if errors are detected: data frame with added columns indicating which observations should be fixed
-if data are correct (corrected with the function) a data frame ready for further processing.
-}
-\description{
-We should write something here
-=======
 check_registrations(registrations)
 }
 \arguments{
@@ -31,5 +18,4 @@ correct. If no critical eroors are detected, functions gives user a choice
 whether to correct detected minor issues detected in the data, or to add
 columns indicating which observations should be fixed. Finally it returns
 a data frame with corrected data or columns indicating problems.
->>>>>>> 6bc7fdc21d4041b093ea2638d8c3ff2ed90974be
 }

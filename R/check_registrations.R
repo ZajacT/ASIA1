@@ -7,6 +7,7 @@
 #' @param registrations data frame with data regarding registrations
 #' @return data frame
 #' @importFrom dplyr mutate if_else filter
+#' @importFrom utils menu
 #' @export
 check_registrations <- function(registrations) {
   stopifnot(is.data.frame(registrations))
@@ -38,7 +39,7 @@ check_registrations <- function(registrations) {
              filter(czy_oplacony %in% "1")
     )
   }
-  
+
   if (!all(registrations$przyjety %in% c("0", "1"))) {
     switch(menu(c("Dodaj do zbioru kolumnę 'blad_przyj', wskazującą obserwacje wymagające poprawy.",
                   "Zamień wszystkie wartości inne niż '1' na '0'."),

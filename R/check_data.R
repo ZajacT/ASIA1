@@ -1,5 +1,6 @@
 #' @title Checking the correctness of a recrutation data
-#' @description We should write something here
+#' @description Function checks the correctness of a recrutation data for
+#' purpose of ongoing recrutation process.
 #' @param groupingVariable optionally name of a grouping variable that should be
 #' used in analysis given as a string or as a name/symbol
 #' @param registrations optionally path to the file with data on registrations

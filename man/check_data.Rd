@@ -34,7 +34,8 @@ written to a file described with the \code{output} parameter (data frame is
 returned invisibly).
 }
 \description{
-We should write something here
+Function checks the correctness of a recrutation data for
+purpose of ongoing recrutation process.
 }
 \details{
 Location of files contaninig the data to be checked and location of file
