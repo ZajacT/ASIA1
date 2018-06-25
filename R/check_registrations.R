@@ -4,7 +4,6 @@
 #' @return if errors are detected: data frame with added columns indicating which observations should be fixed
 #' if data are correct (corrected with the function) a data frame ready for further processing.
 #' @importFrom dplyr mutate if_else filter
-#' @export
 check_registrations <- function(registrations = registrations) {
   #-----------------------------------------------------------------------------
   #|-> checks whether the file contains all the required variables (critical errors)
@@ -34,28 +33,7 @@ check_registrations <- function(registrations = registrations) {
   #|-> checks whether variables contain any illegal values and offers fixes
   #-----------------------------------------------------------------------------
   
-  if(sum(!(registrations$przyjety %in% c("0", "1")) > 0)) {
-    switch(menu(c("Dodaj do zbioru kolumnę 'blad_przyj' wskazującą obserwacje wymagające poprawy ",
-                  "Zamień wszystkie wartości inne niż '1' na '0'"),
-                title = "Zmienna 'przyjety' nie może przyjmować wartości innych niż 0 lub 1."),
-           registrations <- registrations %>% 
-             mutate(blad_przyj = if_else(przyjety %in% c("0", "1"), 0, 1)),
-           registrations <- registrations %>% 
-             mutate(przyjety = if_else(przyjety %in% c("0", "1"), przyjety, "0"))
-    )
-  }
-
-  if(sum(!(registrations$zakwalifikowany %in% c("0", "1")) > 0)) {
-    switch(menu(c("Dodaj do zbioru kolumnę 'blad_zakw' wskazującą obserwacje wymagające poprawy ",
-                  "Zamień wszystkie wartości inne niż '1' na '0'"),
-                title = "Zmienna 'zakwalifikowany' nie może przyjmować wartości innych niż 0 lub 1."),
-           registrations <- registrations %>% 
-             mutate(blad_zakw = if_else(zakwalifikowany %in% c("0", "1"), 0, 1)),
-           registrations <- registrations %>% 
-             mutate(zakwalifikowany = if_else(zakwalifikowany %in% c("0", "1"), zakwalifikowany, "0"))
-    )
-  }
-  
+  # checks wheter there are values other than "0" or "1"
   if(sum(!(registrations$czy_oplacony %in% c("0", "1")) > 0)) {
     switch(menu(c("Dodaj do zbioru kolumnę 'blad_oplac' wskazującą obserwacje wymagające poprawy ",
                   "Zamień wszystkie wartości inne niż '1' na '0'",
@@ -70,6 +48,31 @@ check_registrations <- function(registrations = registrations) {
     )
   }
   
+  # checks wheter there are values other than "0" or "1"
+  if(sum(!(registrations$przyjety %in% c("0", "1")) > 0)) {
+    switch(menu(c("Dodaj do zbioru kolumnę 'blad_przyj' wskazującą obserwacje wymagające poprawy ",
+                  "Zamień wszystkie wartości inne niż '1' na '0'"),
+                title = "Zmienna 'przyjety' nie może przyjmować wartości innych niż 0 lub 1."),
+           registrations <- registrations %>% 
+             mutate(blad_przyj = if_else(przyjety %in% c("0", "1"), 0, 1)),
+           registrations <- registrations %>% 
+             mutate(przyjety = if_else(przyjety %in% c("0", "1"), przyjety, "0"))
+    )
+  }
+
+  # checks wheter there are values other than "0" or "1"
+  if(sum(!(registrations$zakwalifikowany %in% c("0", "1")) > 0)) {
+    switch(menu(c("Dodaj do zbioru kolumnę 'blad_zakw' wskazującą obserwacje wymagające poprawy ",
+                  "Zamień wszystkie wartości inne niż '1' na '0'"),
+                title = "Zmienna 'zakwalifikowany' nie może przyjmować wartości innych niż 0 lub 1."),
+           registrations <- registrations %>% 
+             mutate(blad_zakw = if_else(zakwalifikowany %in% c("0", "1"), 0, 1)),
+           registrations <- registrations %>% 
+             mutate(zakwalifikowany = if_else(zakwalifikowany %in% c("0", "1"), zakwalifikowany, "0"))
+    )
+  }
+  
+  # checks if all admitted were first accepted 
   if(sum((registrations$przyjety %in% "1") & !(registrations$zakwalifikowany %in% "1")) > 0) {
     switch(menu(c("Dodaj do zbioru kolumnę 'blad_prz_zak' wskazującą obserwacje wymagające poprawy ",
                   "Skoryguj wartości zmiennej 'zakwalifikowany' - wstaw '1', jeśli 'przyjety' jest równa '1'."),
@@ -81,6 +84,7 @@ check_registrations <- function(registrations = registrations) {
     )
   }
   
+  # checks if all accepted paid the fee
   if(sum((registrations$zakwalifikowany %in% "1") & !(registrations$czy_oplacony %in% "1")) > 0) {
     switch(menu(c("Dodaj do zbioru kolumnę 'blad_zak_opl' wskazującą obserwacje wymagające poprawy ",
                   "Skoryguj wartości zmiennej 'czy_oplacony' - wstaw '1', jeśli 'zakwalifikowany' jest równa '1'."),
