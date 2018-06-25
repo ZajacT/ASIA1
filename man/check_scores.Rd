@@ -7,12 +7,16 @@
 check_scores(scores = scores)
 }
 \arguments{
-\item{registrations}{optionally path to the file with data on scores}
+\item{scores}{optionally path to the file with data on scores}
 }
 \value{
 if errors are detected: data frame with added columns indicating which observations should be fixed
 if data are correct (corrected with the function) a data frame ready for further processing.
 }
 \description{
-We should write something here
+Function checks if data on scores are complete and
+correct. If no critical eroors are detected, functions gives user a choice
+whether to correct detected minor issues detected in the data, or to add
+columns indicating which observations should be fixed. Finally it returns
+a data frame with corrected data or columns indicating problems.
 }

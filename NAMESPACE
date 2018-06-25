@@ -2,6 +2,7 @@
 
 export(check_data)
 export(check_registrations)
+export(check_scores)
 export(foreigners)
 importFrom(dplyr,anti_join)
 importFrom(dplyr,distinct)
