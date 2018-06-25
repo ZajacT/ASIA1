@@ -89,6 +89,10 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
     stop(paste0("Zmienna grupująca podana argumentem baseGroupingVariable ('",
                 baseGroupingVariable, "') nie występuje w danych o rekrutacjach."))
   }
+  cat("--------------------\n",
+      "Sprawdzanie poprawności danych dot. rejestracji.\n",
+      sep = "")
+  registrations <- check_registrations(registrations)
 
   ## foreign applicants with scholarships
   cat("--------------------\n",
