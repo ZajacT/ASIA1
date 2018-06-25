@@ -30,9 +30,9 @@ check_scores <- function(scores = scores) {
   #-----------------------------------------------------------------------------
 
   if (any(is.na(scores$wynik) | grepl("^-",scores$wynik))) {
-    switch(menu(c("Dodaj do zbioru kolumnę 'blad_wynik' wskazującą obserwacje wymagające poprawy ",
-                  "Zamień wszystkie wartości inne niż liczby równe lub większe od 0 na braki danych"),
-                title = "Zmienna 'wynik' nie może przyjmować wartości mniejszych niż 0"),
+    switch(menu(c("Dodaj do zbioru kolumnę 'blad_wynik', wskazującą obserwacje wymagające poprawy.",
+                  "Zamień wszystkie wartości inne niż liczby równe lub większe od 0 na braki danych."),
+                title = "Zmienna 'wynik' nie może przyjmować wartości mniejszych niż 0."),
            scores <- scores %>%
              mutate(blad_wynik = if_else(is.na(wynik) | grepl("^-",wynik), 0, 1)),
            scores <- scores %>%
