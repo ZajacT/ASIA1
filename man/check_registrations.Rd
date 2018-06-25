@@ -4,6 +4,7 @@
 \alias{check_registrations}
 \title{Checks if data on registretions are complete and correct}
 \usage{
+<<<<<<< HEAD
 check_registrations(registrations = registrations)
 }
 \arguments{
@@ -15,4 +16,20 @@ if data are correct (corrected with the function) a data frame ready for further
 }
 \description{
 We should write something here
+=======
+check_registrations(registrations)
+}
+\arguments{
+\item{registrations}{data frame with data regarding registrations}
+}
+\value{
+data frame
+}
+\description{
+Function checks if data on registretions are complete and
+correct. If no critical eroors are detected, functions gives user a choice
+whether to correct detected minor issues detected in the data, or to add
+columns indicating which observations should be fixed. Finally it returns
+a data frame with corrected data or columns indicating problems.
+>>>>>>> 6bc7fdc21d4041b093ea2638d8c3ff2ed90974be
 }
