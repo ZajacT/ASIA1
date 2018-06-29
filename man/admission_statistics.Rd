@@ -5,7 +5,7 @@
 \title{Summarises admissions}
 \usage{
 admission_statistics(groupingVariable = "studia", registrations = NULL,
-  scores = NULL, exams = NULL, limits = NULL, output = NULL)
+  exams = NULL, limits = NULL, output = NULL)
 }
 \arguments{
 \item{groupingVariable}{optionally name of a grouping variable that should be

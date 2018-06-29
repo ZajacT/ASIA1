@@ -24,7 +24,7 @@
 #' @importFrom rlang ensym
 #' @importFrom utils write.csv2
 #' @export
-admission_statistics <- function(groupingVariable = "studia", registrations = NULL, scores = NULL,
+admission_statistics <- function(groupingVariable = "studia", registrations = NULL,
                        exams = NULL, limits = NULL, output = NULL) {
   errorGroupingVariableFormatMessage = "Zmienna grupująca musi zostać podana jako ciąg znaków (jednoelementowy wektor typu character) lub jako wyrażenie (nazwa zmiennej nie ujęta w cudzysłów)."
   groupingVariable <-
