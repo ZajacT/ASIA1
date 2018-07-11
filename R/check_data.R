@@ -21,10 +21,6 @@
 #' @return Data frame (tibble) with computed summary statistics - the same as
 #' written to a file described with the \code{output} parameter (data frame is
 #' returned invisibly).
-#' @examples
-#' \dontrun{
-#'   check_data()
-#' }
 #' @importFrom dplyr group_by mutate n summarise filter
 #' @importFrom rlang ensym
 #' @importFrom utils write.csv2

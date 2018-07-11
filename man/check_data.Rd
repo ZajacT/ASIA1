@@ -43,8 +43,3 @@ in which results will be saved can be described noninteractively with
 function arguments described above or - if any of this arguments is omitted -
 interactively with a system file-selection dialog.
 }
-\examples{
-\dontrun{
-  check_data()
-}
-}

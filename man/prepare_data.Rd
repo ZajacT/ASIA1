@@ -4,16 +4,27 @@
 \alias{prepare_data}
 \title{Preparing recrutation data for analysis}
 \usage{
-prepare_data(registrations = NULL, scores = NULL, usosAdmitssion = NULL,
+prepare_data(registrations = NULL, scores = NULL, usosAdmission = NULL,
   recRegistrations = NULL, recUsos = NULL)
+}
+\arguments{
+\item{registrations}{optionally path to the file with data on registrations}
+
+\item{scores}{optionally path to the file with data on recruitment scores}
+
+\item{usosAdmission}{???}
+
+\item{recRegistrations}{???}
+
+\item{recUsos}{???}
 }
 \value{
 Data frame with corrected data on registrations.
 }
 \description{
-Function creates a corrected dataset on registrations that
-is suitable for final analysis. Operations: checking against 
-USOS records on acepted applicants, checking and correcting multiple registrations 
-i.e. cases that an applicant applies more than one time to a given program, 
-adding data on scores to the data on registrations.
+Function creates a corrected dataset on registrations that is
+suitable for final analysis. Operations: checking against USOS records on
+acepted applicants, checking and correcting multiple registrations i.e. cases
+that an applicant applies more than one time to a given program, adding data
+on scores to the data on registrations.
 }

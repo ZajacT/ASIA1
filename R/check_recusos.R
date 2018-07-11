@@ -1,19 +1,20 @@
-#' @title Function checks IRK recoding dictionary
-#' @description Function checks if all required variables in IRK recoding dictionary are present.
-#' @param  recRegistrations data frame with recoding dictionary for registrations data
+#' @title Function checks USOS recoding dictionary
+#' @description Function checks if all required variables in USOS recoding
+#'  dictionary are present.
+#' @param  recUsos data frame with recoding dictionary for USOS data
 #' @return An error message if any variable is missing
-check_recregistrations <- function(recRegistrations = recRegistrations) {
+check_recusos <- function(recUsos) {
   #-----------------------------------------------------------------------------
   #|-> checks whether the file contains all the required variables (critical errors)
   #-----------------------------------------------------------------------------
 
-  reqVarNames <- c("studia","studia_rec")
-  missVarNames  <- setdiff(reqVarNames, names(recRegistrations))
+  reqVarNames <- c("program", "etap", "studia_rec")
+  missVarNames  <- setdiff(reqVarNames, names(recUsos))
   if (length(missVarNames) > 0) {
-    stop(paste0("W słowniku do przekodowywania kodów IRK brakuje ",
+    stop(paste0("W słowniku do przekodowywania danych USOS brakuje ",
                 ifelse(length(missVarNames) > 1, "zmiennych", "zmiennej"), ": '",
                 paste0(missVarNames, collapse = "', '"),
                 "'."), call. = FALSE)
   }
-  return()
+  return(recUsos)
 }

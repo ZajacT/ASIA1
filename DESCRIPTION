@@ -5,7 +5,7 @@ Authors@R: c(person("Tomasz", "Zając", email = "t.zajac@uw.edu.pl", role = c("a
              person("Tomasz", "Żółtak", email = "tomek@zozlak.org", role = c("aut")))
 Description: Sprawdza poprawność danych wprowadzonych do systemu IRK przez komisje rekrutacyjne. Generuje podstawowe zestawienia dotyczące naboru na poszczególne kierunki.
 Depends: R (>= 3.5.0)
-Imports: dplyr, magrittr, readxl, rlang
+Imports: dplyr, magrittr, readxl, rlang, tidyr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
