@@ -4,11 +4,11 @@
 #' acepted applicants, checking and correcting multiple registrations i.e. cases
 #' that an applicant applies more than one time to a given program, adding data
 #' on scores to the data on registrations.
-#' @param registrations optionally path to the file with data on registrations
-#' @param scores optionally path to the file with data on recruitment scores
-#' @param usosAdmission ???
-#' @param recRegistrations ???
-#' @param recUsos ???
+#' @param registrations optionally a path to the file with data on registrations
+#' @param scores optionally a path to the file with data on recruitment scores
+#' @param usosAdmission optionally a path to the file with USOS data on admissions
+#' @param recRegistrations optionally a path to the file with instructions to alter programme codes in IRK data
+#' @param recUsos optionally a path to the file with instructions to alter programme codes in USOS data
 #' @return Data frame with corrected data on registrations.
 #' @importFrom dplyr group_by mutate n summarise filter semi_join
 #' @importFrom utils write.csv2
@@ -50,21 +50,21 @@ prepare_data <- function(registrations = NULL, scores = NULL,
   scores <- read_file(scores)
 
   if (is.null(usosAdmission)) {
-    usosAdmission <- choose_file(" z danymi o ???")
+    usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
   }
   check_input_path(usosAdmission, "usosAdmission")
   usosAdmission <- read_file(usosAdmission)
 
   if (mergeType == 1) {
     if (is.null(recRegistrations)) {
-      recRegistrations <- choose_file(" ze ???")
+      recRegistrations <- choose_file(" z instrukcją przekształcenia kodów studiów w danych IRK")
     }
     check_input_path(recRegistrations, "recRegistrations")
     recrutations <- read_file(recRegistrations, columnsToCharacter = FALSE)
     recrutations <- check_recregistrations(recrutations)
   } else {
     if (is.null(recUsos)) {
-      recUsos <- choose_file(" ze ???")
+      recUsos <- choose_file(" z instrukcją przekształcenia kodów studiów w danych USOS")
     }
     check_input_path(recUsos, "recUsos")
     recrutations <- read_file(recUsos, columnsToCharacter = FALSE)
@@ -146,7 +146,7 @@ prepare_data <- function(registrations = NULL, scores = NULL,
     registrations <- join_with_check(registrations,
                                      suppressMessages(semi_join(usosAdmission,
                                                                 registrations)),
-                                     "damych o rejestracjach z IRK",
+                                     "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
       mutate(przyjetyUsos = if_else(is.na(przyjetyUsos), 0, przyjetyUsos)) %>%
       mutate(przyjetyUsos = if_else((przyjetyUsos > 0 & zakwalifikowany %in% "0" ),
@@ -166,5 +166,5 @@ prepare_data <- function(registrations = NULL, scores = NULL,
     ) %>%
     ungroup()
 
-  invisible(dataOnRegistrations)
+  return(dataOnRegistrations)
 }

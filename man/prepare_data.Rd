@@ -8,15 +8,15 @@ prepare_data(registrations = NULL, scores = NULL, usosAdmission = NULL,
   recRegistrations = NULL, recUsos = NULL)
 }
 \arguments{
-\item{registrations}{optionally path to the file with data on registrations}
+\item{registrations}{optionally a path to the file with data on registrations}
 
-\item{scores}{optionally path to the file with data on recruitment scores}
+\item{scores}{optionally a path to the file with data on recruitment scores}
 
-\item{usosAdmission}{???}
+\item{usosAdmission}{optionally a path to the file with USOS data on admissions}
 
-\item{recRegistrations}{???}
+\item{recRegistrations}{optionally a path to the file with instructions to alter programme codes in IRK data}
 
-\item{recUsos}{???}
+\item{recUsos}{optionally a path to the file with instructions to alter programme codes in USOS data}
 }
 \value{
 Data frame with corrected data on registrations.
