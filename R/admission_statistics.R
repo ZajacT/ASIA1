@@ -102,6 +102,7 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     exams$wynik_r <- as.numeric(ifelse(exams$wynik_r == "NULL",
                                        "", exams$wynik_r))
     exams <- exams %>%
+      filter(grepl("^M_", egzamin)) %>%
       select(pesel, egzamin, wynik_p, wynik_r) %>%
       gather(poziom, wynik, -pesel, -egzamin) %>%
       mutate(egzamin = paste0(egzamin, sub("wynik", "", poziom))) %>%
