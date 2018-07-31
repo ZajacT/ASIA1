@@ -13,7 +13,7 @@ check_registrations(registrations)
 data frame
 }
 \description{
-Function checks if data on registretions are complete and
+Function checks if data on registrations are complete and
 correct. If no critical eroors are detected, functions gives user a choice
 whether to correct detected minor issues detected in the data, or to add
 columns indicating which observations should be fixed. Finally it returns
