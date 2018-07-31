@@ -47,17 +47,20 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y",
   }
   cat("Łączenie zostanie dokonane na podstawie wartości zmiennej/zmiennych: '",
       paste(joiningBy, collapse = "', '"), "'.\n", sep = "")
-  if (select(x, joiningBy) %>% distinct %>% nrow() != nrow(x)) {
+  joiningByNotDistinctX = x %>%
+    select(joiningBy) %>%
+    distinct %>%
+    nrow() != nrow(x)
+  joiningByNotDistinctY = y %>%
+    select(joiningBy) %>%
+    distinct %>%
+    nrow() != nrow(y)
+  if (joiningByNotDistinctX & joiningByNotDistinctY) {
     stop(paste0("Łączenie nie może zostać przeprowadzone, bo ",
                 ifelse(length(joiningBy) > 1, "kombinacje wartości ww. kolumn",
                        "wartości w ww. kolumnie"),
-                " nie są unikalne w ", xDescription, "."))
-  }
-  if (select(y, joiningBy) %>% distinct %>% nrow() != nrow(y)) {
-    stop(paste0("Łączenie nie może zostać przeprowadzone, bo ",
-                ifelse(length(joiningBy) > 1, "kombinacje wartości ww. kolumn",
-                       "wartości w ww. kolumnie"),
-                " nie są unikalne w ", yDescription, "."))
+                " nie są unikalne zarówno w ", xDescription, ", jak i w ",
+                yDescription, "."))
   }
 
   checkY <- suppressMessages(anti_join(y, x))
