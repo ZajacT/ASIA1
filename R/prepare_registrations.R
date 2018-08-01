@@ -23,7 +23,7 @@
 #'   \item{In any other case function returns invisibly a data frame with
 #'   corrected data on registrations.}
 #' }
-#' @importFrom dplyr group_by mutate n summarise filter semi_join
+#' @importFrom dplyr group_by mutate n one_of summarise filter semi_join
 #' @importFrom utils write.csv2
 #' @importFrom rlang ensym
 #' @export
@@ -82,7 +82,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     }
     taggedProblems <-  TRUE
   }
-  scores = scoresChecked
+  scores = scoresChecked %>%
+    select(-one_of(setdiff(intersect(names(scores), names(registrations)),
+                           c("pesel", "studia"))))
   rm(scoresChecked)
 
   if (taggedProblems) {
@@ -105,7 +107,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   cat("--------------------\n",
       "Sprawdzanie poprawności połączonych danych o rekrutacjach i o punktach rekrutacyjnych.\n\n", sep = "")
   registrations = check_registrations_with_scores(registrations)
-  
+
   #-----------------------------------------------------------------------------
   #|-> Here starts the merging of IRK and USOS records
   #-----------------------------------------------------------------------------
@@ -120,24 +122,32 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
            mergeType <- 2)
   } else if (is.na(recUsos)) {
     mergeType <- 1
-    gruoupingVar <- "studia"
+  } else {
+    mergeType <- 2
   }
   if (mergeType == 1) {
     gruoupingVar <- "studia"
-    if (is.null(recRegistrations) ) {
+    if (is.null(recRegistrations)) {
       cat("---\n")
       switch(menu(c("Nie",
                     "Tak (konieczne będzie wczytanie pliku ze słownikiem"),
-                  title = "Czy kody programów studiów mają zmienione z wykorzystaniem słownika"),
+                  title = "Czy kody programów studiów mają zostać zmienione z wykorzystaniem słownika"),
              recIRK <- 1,
              recIRK <- 2)
+    } else if (is.na(recRegistrations)) {
+      recIRK <- 1
+    } else {
+      recIRK <- 2
     }
-    
+  } else {
+    recIRK <- 2
   }
-  
-  if (is.null(recRegistrations) & (mergeType == 2 | recIRK == 2)) {
-    recRegistrations <- choose_file(" z instrukcją przekształcenia kodów studiów w danych IRK")
-    check_input_path(recRegistrations, "recRegistrations")
+
+  if (recIRK == 2) {
+    if (is.null(recRegistrations)) {
+      recRegistrations <- choose_file(" z instrukcją przekształcenia kodów studiów w danych IRK")
+      check_input_path(recRegistrations, "recRegistrations")
+    }
     recRegistrations <- read_file(recRegistrations, columnsToCharacter = FALSE)
     check_variable_names(recRegistrations,
                          c("studia","studia_rec"),
@@ -145,17 +155,17 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     recRegistrations <- recRegistrations %>%
       select(studia, studia_rec)
   }
-  
+
   if (mergeType == 2) {
     gruoupingVar <- "studia_rec"
-    
+
     if (is.null(usosAdmission)) {
       usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
     }
     check_input_path(usosAdmission, "usosAdmission")
     usosAdmission <- read_file(usosAdmission)
     check_variable_names(usosAdmission,
-                         as.character(c("PESEL","Program","Etap")),
+                         c("pesel", "program", "etap"),
                          "zbiorze z danymi o przyjęciach na studiach weksportowanymi z USOS")
 
     if (is.null(recUsos)) {
