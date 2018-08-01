@@ -25,6 +25,7 @@
 #' }
 #' @importFrom dplyr group_by mutate n summarise filter semi_join
 #' @importFrom utils write.csv2
+#' @importFrom rlang ensym
 #' @export
 prepare_registrations <- function(registrations = NULL, scores = NULL,
                                   output = NULL, usosAdmission = NULL,
@@ -89,49 +90,6 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                           scores = scores)))
   }
 
-  cat("--------------------\n")
-  if (is.null(recRegistrations)) {
-    recRegistrations <- choose_file(" z instrukcją przekształcenia kodów studiów w danych IRK")
-  }
-  check_input_path(recRegistrations, "recRegistrations")
-  recRegistrations <- read_file(recRegistrations, columnsToCharacter = FALSE)
-  check_variable_names(recRegistrations,
-                       c("studia","studia_rec"),
-                       "słowniku do przekodowywania kodów IRK")
-  recRegistrations <- recRegistrations %>%
-    select(studia, studia_rec)
-
-  if (is.null(recUsos)) {
-    cat("---\n")
-    switch(menu(c("Wykorzystywane mają być tylko dane z IRK.",
-                  "Wykorzystywane mają być dane o przyjęciach pochodzące z USOS."),
-                title = "Czy obliczenia będą prowadzone tylko z wykorzystaniem danych IRK, czy też dane o przyjęciach pochodzą z USOS."),
-           mergeType <- 1,
-           mergeType <- 2)
-  } else if (is.na(recUsos)) {
-    mergeType <- 1
-  }
-  if (mergeType == 2) {
-    if (is.null(usosAdmission)) {
-      usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
-    }
-    check_input_path(usosAdmission, "usosAdmission")
-    usosAdmission <- read_file(usosAdmission)
-    check_variable_names(usosAdmission,
-                         as.character(c()), # uzupełnić
-                         "zbiorze z danymi o przyjęciach na studiach weksportowanymi z USOS")
-
-    if (is.null(recUsos)) {
-      recUsos <- choose_file(" z instrukcją przekształcenia kodów studiów w danych USOS")
-    }
-    check_input_path(recUsos, "recUsos")
-    recUsos <- read_file(recUsos, columnsToCharacter = FALSE)
-    check_variable_names(recUsos,
-                         c("program", "etap", "studia_rec"),
-                         "słowniku do przekodowywania danych USOS")
-    recUsos <- recUsos %>%
-      select(program, etap, studia_rec)
-  }
   #-----------------------------------------------------------------------------
   #|-> Data merging begins here
   #-----------------------------------------------------------------------------
@@ -147,17 +105,84 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   cat("--------------------\n",
       "Sprawdzanie poprawności połączonych danych o rekrutacjach i o punktach rekrutacyjnych.\n\n", sep = "")
   registrations = check_registrations_with_scores(registrations)
+  
+  #-----------------------------------------------------------------------------
+  #|-> Here starts the merging of IRK and USOS records
+  #-----------------------------------------------------------------------------
+  cat("--------------------\n")
+
+  if (is.null(recUsos)) {
+    cat("---\n")
+    switch(menu(c("Wykorzystywane mają być tylko dane z IRK.",
+                  "Wykorzystywane mają być dane o przyjęciach pochodzące z USOS."),
+                title = "Czy obliczenia będą prowadzone tylko z wykorzystaniem danych IRK, czy też dane o przyjęciach pochodzą z USOS."),
+           mergeType <- 1,
+           mergeType <- 2)
+  } else if (is.na(recUsos)) {
+    mergeType <- 1
+    gruoupingVar <- "studia"
+  }
+  if (mergeType == 1) {
+    gruoupingVar <- "studia"
+    if (is.null(recRegistrations) ) {
+      cat("---\n")
+      switch(menu(c("Nie",
+                    "Tak (konieczne będzie wczytanie pliku ze słownikiem"),
+                  title = "Czy kody programów studiów mają zmienione z wykorzystaniem słownika"),
+             recIRK <- 1,
+             recIRK <- 2)
+    }
+    
+  }
+  
+  if (is.null(recRegistrations) & (mergeType == 2 | recIRK == 2)) {
+    recRegistrations <- choose_file(" z instrukcją przekształcenia kodów studiów w danych IRK")
+    check_input_path(recRegistrations, "recRegistrations")
+    recRegistrations <- read_file(recRegistrations, columnsToCharacter = FALSE)
+    check_variable_names(recRegistrations,
+                         c("studia","studia_rec"),
+                         "słowniku do przekodowywania kodów IRK")
+    recRegistrations <- recRegistrations %>%
+      select(studia, studia_rec)
+  }
+  
+  if (mergeType == 2) {
+    gruoupingVar <- "studia_rec"
+    
+    if (is.null(usosAdmission)) {
+      usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
+    }
+    check_input_path(usosAdmission, "usosAdmission")
+    usosAdmission <- read_file(usosAdmission)
+    check_variable_names(usosAdmission,
+                         as.character(c("PESEL","Program","Etap")),
+                         "zbiorze z danymi o przyjęciach na studiach weksportowanymi z USOS")
+
+    if (is.null(recUsos)) {
+      recUsos <- choose_file(" z instrukcją przekształcenia kodów studiów w danych USOS")
+    }
+    check_input_path(recUsos, "recUsos")
+    recUsos <- read_file(recUsos, columnsToCharacter = FALSE)
+    check_variable_names(recUsos,
+                         c("program", "etap", "studia_rec"),
+                         "słowniku do przekodowywania danych USOS")
+    recUsos <- recUsos %>%
+      select(program, etap, studia_rec)
+  }
+
   #-----------------------------------------------------------------------------
   #|-> Recoding programme codes in data on registrations
   #-----------------------------------------------------------------------------
-  cat("--------------------\n",
-      "Przekodowywanie kodów studiów w pliku z danymi o rekrutacjach.\n---\n",
-      sep = "")
-  registrations <- join_with_check(registrations,
-                                   suppressMessages(semi_join(recRegistrations,
-                                                              registrations)),
+  if (mergeType == 2 | recIRK == 2) {
+    cat("--------------------\n",
+        "Przekodowywanie kodów studiów w pliku z danymi o rekrutacjach.\n---\n",
+        sep = "")
+    registrations <- join_with_check(registrations,
+                                     suppressMessages(semi_join(recRegistrations,
+                                                                registrations)),
                                    "danych o rekrutacjach",
                                    "zmienionych kodach IRK")
+  }
   #-----------------------------------------------------------------------------
   #|-> Here programme codes are recoded and USOS data replace IRK data on enrolment
   #-----------------------------------------------------------------------------
@@ -191,8 +216,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #|-> Here the merging of the records starts
   #-----------------------------------------------------------------------------
   cat("--------------------\nPrzekształcanie danych.\n")
+  gruoupingVar <- ensym(gruoupingVar)
   dataOnRegistrations <- registrations %>%
-    group_by("pesel","studia_rec") %>%
+    group_by(!!gruoupingVar,pesel) %>%
     summarise(
       REJ = sum(czy_oplacony %in% "1"), # how many times an applicant registered
       ZAK = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
