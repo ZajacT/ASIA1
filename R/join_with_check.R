@@ -19,7 +19,7 @@
 #' (adds 1 to reported numbers of rows to account that there is also a header
 #' row) while "observations" for data that has already been processed
 #' @return Data frame returned by \code{full_join(x, y)}.
-#' @importFrom dplyr anti_join distinct full_join select
+#' @importFrom dplyr anti_join distinct full_join left_join mutate select
 join_with_check <- function(x, y, xDescription = "x", yDescription = "y",
                             xCheckAllMatchesY = TRUE, yCheckAllMatchesX = TRUE,
                             rowsOrObservations = "rows") {
@@ -64,37 +64,45 @@ join_with_check <- function(x, y, xDescription = "x", yDescription = "y",
   }
 
   checkY <- suppressMessages(anti_join(y, x))
-  if (nrow(checkY) > 0 & yCheckAllMatchesX) {
+  rnCheckY <- suppressMessages(left_join(y,
+                                         mutate(checkY, .notInX = TRUE)) %>%
+                                         {which(.$.notInX)})
+  nRowCheckY <- nrow(checkY)
+  rm(checkY)
+  if (nRowCheckY > 0 & yCheckAllMatchesX) {
     warning(paste0("W ", yDescription, " występuje/ą ",
-                   format(nrow(checkY), big.mark = "'"),
+                   format(nRowCheckY, big.mark = "'"),
                    " wiersz(e/y), który/e nie ma(ją) odpowiednika w ",
                    xDescription, ".\n\n",
                    doNotMatchMessage, ":\n",
-                   paste(strwrap(paste(as.numeric(rownames(checkY)) + add,
-                                       collapse = ", "),
+                   paste(strwrap(paste(rnCheckY + add, collapse = ", "),
                                  prefix = " "),
                          collapse = "\n")),
             call. = FALSE, immediate. = TRUE)
     cat("\n")
   }
   checkX <- suppressMessages(anti_join(x, y))
-  if (nrow(checkX) > 0 & xCheckAllMatchesY) {
+  rnCheckX <- suppressMessages(left_join(x,
+                                         mutate(checkX, .notInY = TRUE)) %>%
+                                         {which(.$.notInY)})
+  nRowCheckX <- nrow(checkX)
+  rm(checkX)
+  if (nRowCheckX > 0 & xCheckAllMatchesY) {
     warning(paste0("W ", xDescription, " występuje/ą ",
-                   format(nrow(checkX), big.mark = "'"),
+                   format(nRowCheckX, big.mark = "'"),
                    " wiersz(e/y), który/e nie ma(ją) odpowiednika w ",
                    yDescription, ".\n\n",
                    doNotMatchMessage, ":\n",
-                   paste(strwrap(paste(as.numeric(rownames(checkX)) + add,
-                                       collapse = ", "),
+                   paste(strwrap(paste(rnCheckX + add, collapse = ", "),
                                  prefix = " "),
                          collapse = "\n")),
             call. = FALSE, immediate. = TRUE)
     cat("\n")
   }
   cat("Dane zostaną przyłączone do ",
-      format(nrow(x) - nrow(checkX), big.mark = "'"), " (spośród ",
+      format(nrow(x) - nRowCheckX, big.mark = "'"), " (spośród ",
       format(nrow(x), big.mark = "'"), ") wierszy w ", xDescription, " i ",
-      format(nrow(y) - nrow(checkY), big.mark = "'"), " (spośród ",
+      format(nrow(y) - nRowCheckY, big.mark = "'"), " (spośród ",
       format(nrow(y), big.mark = "'"), ") wierszy w ", yDescription, ".\n", sep = "")
   suppressMessages(full_join(x, y)) %>%
     return()
