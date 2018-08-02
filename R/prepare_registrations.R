@@ -25,7 +25,6 @@
 #' }
 #' @importFrom dplyr group_by mutate n one_of summarise filter semi_join
 #' @importFrom utils write.csv2
-#' @importFrom rlang ensym
 #' @export
 prepare_registrations <- function(registrations = NULL, scores = NULL,
                                   output = NULL, usosAdmission = NULL,
@@ -126,7 +125,6 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     mergeType <- 2
   }
   if (mergeType == 1) {
-    gruoupingVar <- "studia"
     if (is.null(recRegistrations)) {
       cat("---\n")
       switch(menu(c("Nie",
@@ -157,7 +155,6 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   }
 
   if (mergeType == 2) {
-    gruoupingVar <- "studia_rec"
 
     if (is.null(usosAdmission)) {
       usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
@@ -191,7 +188,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                      suppressMessages(semi_join(recRegistrations,
                                                                 registrations)),
                                    "danych o rekrutacjach",
-                                   "zmienionych kodach IRK")
+                                   "zmienionych kodach IRK") %>%
+      select(-studia) %>%
+      rename(studia = studia_rec)
   }
   #-----------------------------------------------------------------------------
   #|-> Here programme codes are recoded and USOS data replace IRK data on enrolment
@@ -205,9 +204,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                                                 usosAdmission)),
                                      "danych z USOS o przyjęciach",
                                      "zmienionych kodach USOS") %>%
-      select("pesel","studia_rec") %>%
+      select("pesel","studia" = "studia_rec") %>%
       mutate(przyjety = 1) %>%
-      group_by(studia_rec) %>%
+      group_by(pesel,studia) %>%
       summarise(
         przyjetyUsos = sum(przyjety %in% "1") # a person can apply to a double programme which means being a student at two programmes.
       ) %>%
@@ -226,14 +225,13 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #|-> Here the merging of the records starts
   #-----------------------------------------------------------------------------
   cat("--------------------\nPrzekształcanie danych.\n")
-  gruoupingVar <- ensym(gruoupingVar)
   dataOnRegistrations <- registrations %>%
-    group_by(!!gruoupingVar,pesel) %>%
+    group_by(studia,pesel) %>%
     summarise(
-      REJ = sum(czy_oplacony %in% "1"), # how many times an applicant registered
-      ZAK = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
-      PRZ = sum(przyjety %in% "1"), # how many times an applicant enrolled
-      PKT = suppressWarnings(
+      rej = sum(czy_oplacony %in% "1"), # how many times an applicant registered
+      zak = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
+      prz = sum(przyjety %in% "1"), # how many times an applicant enrolled
+      pkt = suppressWarnings(
         max(wynik[!is.na(wynik)])) # the highest achieved score
     ) %>%
     ungroup()
