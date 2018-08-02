@@ -183,7 +183,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   #|-> Recoding programme codes in data on registrations
   #-----------------------------------------------------------------------------
-  if (mergeType == 2 | recIRK == 2) {
+  if (recIRK == 2) {
     cat("--------------------\n",
         "Przekodowywanie kodów studiów w pliku z danymi o rekrutacjach.\n---\n",
         sep = "")
