@@ -38,26 +38,44 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
            error = function(e) {
              stop("Nie podano zmiennej grupującej (argumentu 'groupingVariable').",
                   call. = FALSE)})
+  #-----------------------------------------------------------------------------
+  #|-> Data loading and checks start here
+  #-----------------------------------------------------------------------------
   if (is.null(registrations)) {
     registrations <- choose_file(" z danymi o rekrutacjach")
   }
   check_input_path(registrations, "registrations")
   registrations <- read_file(registrations)
+  check_variable_names(registrations,
+                       c("pesel", paste0(groupingVariable), "rej", "zak","prz","pkt"),
+                       "danych o rekrutacjach")
+  registrations <- registrations %>% select(!!groupingVariable,pesel,rej,zak,prz,pkt)
+  registrations[, 2:6] <- sapply(registrations[, 2:6], as.numeric)
 
   if (is.null(exams)) {
-    exams <- choose_file(" z danymi o PKTach egzaminów")
+    exams <- choose_file(" z danymi o wynikach egzaminów")
   }
   check_input_path(exams, "exams")
   exams <- read_file(exams)
-
+  check_variable_names(exams,
+                       c("pesel", "egzamin", "wynik_p", "wynik_r"),
+                       "danych o egzaminach")
+  exams <- exams %>% select(egzamin,pesel,wynik_p,wynik_r)
+  exams[, 2:4] <- sapply(exams[, 2:4], as.numeric)
+  
   if (is.null(limits)) {
     limits <- choose_file(" limitami przyjęć")
   }
   check_input_path(limits, "limits")
   limits <- read_file(limits, columnsToCharacter = FALSE)
+  check_variable_names(limits,
+                       c(paste0(groupingVariable),"limitog", "limitp", "limitc", "maxpkt"),
+                       "danych o limitach")
+  limits <- limits %>% select(!!groupingVariable,limitog,limitp,limitc,maxpkt)
+  limits[, 2:5] <- sapply(limits[, 2:5], as.numeric)
 
   if (is.null(output)) {
-    output <- choose_file(", w którym mają zostać zapisane PKTy (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
+    output <- choose_file(", w którym mają zostać zapisane statystyki rekrutacyjne (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
                           errorOnCancel = FALSE)
   }
   if (!is.na(output)) {
@@ -79,75 +97,77 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
       sep = "")
   results <- registrations %>%
     group_by(!!groupingVariable) %>%
-    mutate(PKT_PRZ = ifelse(PRZ > 0 & !is.na(PKT), PKT, NA),
+    mutate(PKT_PRZ = ifelse(prz > 0 & !is.na(pkt), pkt, NA),
            LICZ_Q = sum(!is.na(PKT_PRZ)) > 9,
-           PKT_PRZ = ifelse(LICZ_Q, PKT, NA)) %>%
-    # summarising
-    summarise(
-      NREJ = sum(REJ > 0), # number of registrations
-      NZAK = sum(ZAK > 0), # number of qualified cand.
-      NPRZ = sum(PRZ > 0), # number of admitted cand.
-      PRZ_PKT_NNa = sum(!is.na(PKT)),
-      PRZ_PKT_D1 = round(quantile(PKT_PRZ, probs = 0.10,  na.rm = TRUE), 0),
-      PRZ_PKT_Q1 = round(quantile(PKT_PRZ, probs = 0.25,  na.rm = TRUE), 0),
-      PRZ_PKT_Q3 = round(quantile(PKT_PRZ, probs = 0.75,  na.rm = TRUE), 0),
-      PRZ_PKT_D9 = round(quantile(PKT_PRZ, probs = 0.90,  na.rm = TRUE), 0),
-      PRZ_PKT_MEA = round(mean(PKT_PRZ), 0)) %>%
+           PKT_PRZ = ifelse(LICZ_Q, PKT_PRZ, NA)) %>%
+  # summarising
+  summarise(
+    NREJ = sum(rej > 0), # number of registrations
+    NZAK = sum(zak > 0), # number of qualified cand.
+    NPRZ = sum(prz > 0), # number of admitted cand.
+    PRZ_PKT_NNa = sum(!is.na(pkt)),
+    PRZ_PKT_D1 = round(quantile(PKT_PRZ, probs = 0.10,  na.rm = TRUE), 0),
+    PRZ_PKT_Q1 = round(quantile(PKT_PRZ, probs = 0.25,  na.rm = TRUE), 0),
+    PRZ_PKT_Q3 = round(quantile(PKT_PRZ, probs = 0.75,  na.rm = TRUE), 0),
+    PRZ_PKT_D9 = round(quantile(PKT_PRZ, probs = 0.90,  na.rm = TRUE), 0),
+    PRZ_PKT_MEA = round(mean(PKT_PRZ, na.rm = TRUE), 0)
+  ) %>%
     ungroup()
-    #-----------------------------------------------------------------------------
-    #|-> Exam scores
-    #-----------------------------------------------------------------------------
-    exams$wynik_p <- as.numeric(ifelse(exams$wynik_p == "NULL",
-                                       "", exams$wynik_p))
-    exams$wynik_r <- as.numeric(ifelse(exams$wynik_r == "NULL",
-                                       "", exams$wynik_r))
-    exams <- exams %>%
-      filter(grepl("^M_", egzamin)) %>%
-      select(pesel, egzamin, wynik_p, wynik_r) %>%
-      gather(poziom, wynik, -pesel, -egzamin) %>%
-      mutate(egzamin = paste0(egzamin, sub("wynik", "", poziom))) %>%
-      select(-poziom) %>%
-      group_by(pesel, egzamin) %>%
-      mutate(wynik = max(wynik)) %>%
-      ungroup()
-    exams <- suppressMessages(semi_join(exams, registrations))
-
-    matResults <- suppressMessages(registrations %>%
-                                     filter(PRZ > 0) %>%
-                                     left_join(exams)) %>%
-      group_by(!!groupingVariable, egzamin) %>%
-      mutate(LICZ_Q = sum(!is.na(wynik)) > 9) %>%
-      summarise(PN = sum(!is.na(wynik)),
-                PPROC = round(PN / n(), 2),
-                PSR = round(mean(wynik, na.rm = TRUE), 0),
-                PD1 = round(quantile(wynik, probs = 0.10, na.rm = TRUE), 0),
-                PQ1 = round(quantile(wynik, probs = 0.25, na.rm = TRUE), 0),
-                PQ3 = round(quantile(wynik, probs = 0.75, na.rm = TRUE), 0),
-                PD9 = round(quantile(wynik, probs = 0.90, na.rm = TRUE), 0)) %>%
-      ungroup() %>%
-      gather(statystyka, wartosc, -!!groupingVariable, -egzamin) %>%
-      mutate(statystyka = paste0(egzamin, "_", statystyka)) %>%
-      select(-egzamin) %>%
-      spread(statystyka, wartosc)
-
-    cat("Przyłączanie danych o wynikach egzaminów maturalnych.\n")
-    results <- join_with_check(results, matResults,
-                               "danych o przyjęciach",
-                               "danych o wynikach maturalnych")
+  #-----------------------------------------------------------------------------
+  #|-> Exam scores
+  #-----------------------------------------------------------------------------
+  exams$wynik_p <- as.numeric(ifelse(exams$wynik_p == "NULL",
+                                     "", exams$wynik_p))
+  exams$wynik_r <- as.numeric(ifelse(exams$wynik_r == "NULL",
+                                     "", exams$wynik_r))
+  exams <- exams %>%
+    filter(grepl("^M_", egzamin)) %>%
+    select(pesel, egzamin, wynik_p, wynik_r) %>%
+    gather(poziom, wynik, -pesel, -egzamin) %>%
+    mutate(egzamin = paste0(egzamin, sub("wynik", "", poziom))) %>%
+    select(-poziom) %>%
+    group_by(pesel, egzamin) %>%
+    mutate(wynik = max(wynik)) %>%
+    ungroup()
+  exams <- suppressMessages(semi_join(exams, registrations))
+  
+  matResults <- suppressMessages(registrations %>%
+                                   filter(prz > 0) %>%
+                                   left_join(exams)) %>%
+    group_by(!!groupingVariable, egzamin) %>%
+    mutate(LICZ_Q = sum(!is.na(wynik)) > 9) %>%
+    summarise(PN = sum(!is.na(wynik)),
+              PPROC = round(PN / n(), 2),
+              PSR = round(mean(wynik, na.rm = TRUE), 0),
+              PD1 = round(quantile(wynik, probs = 0.10, na.rm = TRUE), 0),
+              PQ1 = round(quantile(wynik, probs = 0.25, na.rm = TRUE), 0),
+              PQ3 = round(quantile(wynik, probs = 0.75, na.rm = TRUE), 0),
+              PD9 = round(quantile(wynik, probs = 0.90, na.rm = TRUE), 0)) %>%
+    ungroup() %>%
+    gather(statystyka, wartosc, -!!groupingVariable, -egzamin) %>%
+    mutate(statystyka = paste0(egzamin, "_", statystyka)) %>%
+    select(-egzamin) %>%
+    spread(statystyka, wartosc)
+  
+  cat("Przyłączanie danych o wynikach egzaminów maturalnych.\n")
+  results <- join_with_check(results, matResults,
+                             "danych o przyjęciach",
+                             "danych o wynikach maturalnych")
   # adding limits
   limits <- limits %>%
     group_by(!!groupingVariable) %>%
     summarise(
       LIM_OG = sum(limitog, na.rm = TRUE),
       LIM_P = sum(limitp, na.rm = TRUE),
-      LIM_C = sum(limitc, na.rm = TRUE)
+      LIM_C = sum(limitc, na.rm = TRUE),
+      MAXPKT = max(maxpkt, na.rm = TRUE)
     ) %>%
     ungroup()
-
-    cat("Przyłączanie danych o limitach przyjęć.\n")
-    results <- join_with_check(limits, results,
-                               "danych o limitach przyjęć",
-                               "danych o rekrutacjach")
+  
+  cat("Przyłączanie danych o limitach przyjęć.\n")
+  results <- join_with_check(limits, results,
+                             "danych o limitach przyjęć",
+                             "danych o rekrutacjach")
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
@@ -163,4 +183,5 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     cat("Zapisano Statystyki do pliku '", output, "'.\n", sep = "")
   }
   invisible(results)
+   
 }
