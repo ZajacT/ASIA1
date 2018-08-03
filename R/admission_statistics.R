@@ -46,22 +46,34 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
   }
   check_input_path(registrations, "registrations")
   registrations <- read_file(registrations)
+  cat("--------------------\n",
+      "Sprawdzanie poprawności danych w pliku z rejestracjami.\n",
+      sep = "")
   check_variable_names(registrations,
                        c("pesel", paste0(groupingVariable), "rej", "zak","prz","pkt"),
                        "danych o rekrutacjach")
   registrations <- registrations %>% select(!!groupingVariable,pesel,rej,zak,prz,pkt)
   registrations[, 2:6] <- sapply(registrations[, 2:6], as.numeric)
-
+  check_variable_values(registrations$rej,valMin = 0,valMax = 10)
+  check_variable_values(registrations$zak,valMin = 0,valMax = 10)
+  check_variable_values(registrations$prz,valMin = 0,valMax = 10)
+  check_variable_values(registrations$pkt,valMin = 0)
+  
   if (is.null(exams)) {
     exams <- choose_file(" z danymi o wynikach egzaminów")
   }
   check_input_path(exams, "exams")
   exams <- read_file(exams)
+  cat("--------------------\n",
+      "Sprawdzanie poprawności danych w pliku z wynikami egzaminów.\n",
+      sep = "")
   check_variable_names(exams,
                        c("pesel", "egzamin", "wynik_p", "wynik_r"),
                        "danych o egzaminach")
   exams <- exams %>% select(egzamin,pesel,wynik_p,wynik_r)
   exams[, 2:4] <- sapply(exams[, 2:4], as.numeric)
+  check_variable_values(exams$wynik_p,valMin = 0,valMax = 100)
+  check_variable_values(exams$wynik_r,valMin = 0,valMax = 100)
   
   if (is.null(limits)) {
     limits <- choose_file(" limitami przyjęć")
@@ -73,6 +85,13 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
                        "danych o limitach")
   limits <- limits %>% select(!!groupingVariable,limitog,limitp,limitc,maxpkt)
   limits[, 2:5] <- sapply(limits[, 2:5], as.numeric)
+  cat("--------------------\n",
+      "Sprawdzanie poprawności danych w pliku z limitami.\n",
+      sep = "")
+  check_variable_values(limits$limitog,valMin = 0,valMax = 10000)
+  check_variable_values(limits$limitp,valMin = 0,valMax = 10000)
+  check_variable_values(limits$limitc,valMin = 0,valMax = 10000)
+  check_variable_values(limits$maxpkt,valMin = 0)
 
   if (is.null(output)) {
     output <- choose_file(", w którym mają zostać zapisane statystyki rekrutacyjne (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
