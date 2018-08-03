@@ -152,6 +152,18 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                          "słowniku do przekodowywania kodów IRK")
     recRegistrations <- recRegistrations %>%
       select(studia, studia_rec)
+    testRecReg <- anti_join(registrations,recRegistrations) %>% nrow()
+    irkMer <- 1
+    if(testRecReg > 0){
+      switch(menu(c("Zignoruj - kody nie wymienione w słowniku zostaną usunięte",
+                    "Kody niewymienione w słowniku skopiuj do nowej kolumny",
+                    "Zatrzymaj"),
+                  title = paste0("W pliku z rekrutacjami występują kody studiów, które nie występują w słowniku kodów IRK.\n
+                                 W jaki sposób mająbyć potraktowane brakujące kody")),
+             irkMer <- 1,
+             irkMer <- 2,
+             stop(paste0("zatrzymanie przez użytkownika"), call. = FALSE))
+    }
   }
 
   if (mergeType == 2) {
@@ -175,6 +187,18 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                          "słowniku do przekodowywania danych USOS")
     recUsos <- recUsos %>%
       select(program, etap, studia_rec)
+    testRecUsos <- anti_join(usosAdmission,recUsos) %>% nrow()
+    usosMer <- 1
+    if(testRecUsos > 0){
+      switch(menu(c("Zignoruj - kody nie wymienione w słowniku zostaną usunięte",
+                    "Kody niewymienione w słowniku skopiuj do nowej kolumny",
+                    "Zatrzymaj"),
+                  title = paste0("W pliku z przyjętymi wg USOS występują kody studiów, które nie występują w słowniku kodów USOS\n
+                                 W jaki sposób mająbyć potraktowane brakujące kody")),
+             usosMer <- 1,
+             usosMer <- 2,
+             stop(paste0("zatrzymanie przez użytkownika"), call. = FALSE))
+    }
   }
 
   #-----------------------------------------------------------------------------
@@ -188,9 +212,16 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                      suppressMessages(semi_join(recRegistrations,
                                                                 registrations)),
                                    "danych o rekrutacjach",
-                                   "zmienionych kodach IRK") %>%
+                                   "zmienionych kodach IRK") 
+    if (irkMer == 2) {
+      registrations <- registrations %>% 
+        mutate(studia_rec = ifelse(is.na(studia_rec),studia,studia_rec))
+    }
+    
+    registrations <- registrations %>%
       select(-studia) %>%
-      rename(studia = studia_rec)
+      rename(studia = studia_rec) %>%
+      filter(!is.na(studia))
   }
   #-----------------------------------------------------------------------------
   #|-> Here programme codes are recoded and USOS data replace IRK data on enrolment
@@ -203,7 +234,12 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                      suppressMessages(semi_join(recUsos,
                                                                 usosAdmission)),
                                      "danych z USOS o przyjęciach",
-                                     "zmienionych kodach USOS") %>%
+                                     "zmienionych kodach USOS")
+    if (usosMer == 2){
+      usosAdmission <- usosAdmission %>%
+        mutate(studia_rec = ifelse(is.na(studia_rec),studia,studia_rec))
+    }
+    usosAdmission <- usosAdmission %>%
       select("pesel","studia" = "studia_rec") %>%
       mutate(przyjety = 1) %>%
       group_by(pesel,studia) %>%
