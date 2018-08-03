@@ -16,7 +16,8 @@ check_variable_values(x, valMin = NULL, valMax = NULL, valSet = NULL)
 \item{valSet}{a set of allowed values, an optional parameter}
 }
 \value{
-if errors are detected: a warrning message listing errors
+if errors are detected: a warrning message listing errors 
+and a menu offering an option to stop the program
 }
 \description{
 Function checks if a variable has values within a defined set and checks

@@ -5,8 +5,8 @@
 #' @param valMin a minimal allowed value, an optional parameter
 #' @param valMax a maximal allowed value, an optional parameter
 #' @param valSet a set of allowed values, an optional parameter
-#' @return if errors are detected: a warrning message listing errors
-#' @importFrom dplyr mutate if_else
+#' @return if errors are detected: a warrning message listing errors 
+#' and a menu offering an option to stop the program
 #' @importFrom utils menu
 #' @export
 check_variable_values <- function(x,valMin = NULL, valMax = NULL, valSet = NULL) {
