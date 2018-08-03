@@ -152,22 +152,28 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
   
   matResults <- suppressMessages(registrations %>%
                                    filter(prz > 0) %>%
-                                   left_join(exams)) %>%
+                                   inner_join(exams)) %>%
     group_by(!!groupingVariable, egzamin) %>%
-    mutate(LICZ_Q = sum(!is.na(wynik)) > 9) %>%
+    mutate(LICZ_Q = sum(!is.na(wynik)) > 9,
+           wynik = ifelse(LICZ_Q, wynik, NA)) %>%
     summarise(PN = sum(!is.na(wynik)),
-              PPROC = round(PN / n(), 2),
+              PPROC = round(PN / n(), 2)*100,
               PSR = round(mean(wynik, na.rm = TRUE), 0),
               PD1 = round(quantile(wynik, probs = 0.10, na.rm = TRUE), 0),
               PQ1 = round(quantile(wynik, probs = 0.25, na.rm = TRUE), 0),
               PQ3 = round(quantile(wynik, probs = 0.75, na.rm = TRUE), 0),
               PD9 = round(quantile(wynik, probs = 0.90, na.rm = TRUE), 0)) %>%
+    mutate(PN = ifelse(PN == 0, NA, PN),
+           PPROC = ifelse(PN == 0, NA, PPROC)) %>%
     ungroup() %>%
     gather(statystyka, wartosc, -!!groupingVariable, -egzamin) %>%
-    mutate(statystyka = paste0(egzamin, "_", statystyka)) %>%
+    arrange(egzamin) %>% # this is meant to arrange records in a way that spread command does not change the order of columns
+    mutate(statystyka = paste0(egzamin, "_", statystyka),
+           statystyka = factor(statystyka, levels = unique(statystyka))) %>% # this is meant to fix the desired order of columns after spread is executed
     select(-egzamin) %>%
     spread(statystyka, wartosc)
-  
+    
+    
   cat("Przyłączanie danych o wynikach egzaminów maturalnych.\n")
   results <- join_with_check(results, matResults,
                              "danych o przyjęciach",
