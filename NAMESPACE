@@ -2,11 +2,9 @@
 
 export(admission_statistics)
 export(check_data)
-export(check_rec_joining)
 export(check_registrations)
 export(check_registrations_with_scores)
 export(check_scores)
-export(check_variable_values)
 export(foreigners)
 export(prepare_registrations)
 importFrom(dplyr,anti_join)

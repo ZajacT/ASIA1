@@ -11,7 +11,6 @@
 #' this rows with codes as they appear in the data
 #' @importFrom dplyr anti_join
 #' @importFrom utils menu
-#' @export
 check_rec_joining <- function(data, rec, dataDescription = "pliku z danymi",
                               recDescription = "pliku ze slownikiem") {
   stopifnot(is.data.frame(data),
