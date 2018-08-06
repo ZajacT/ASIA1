@@ -23,8 +23,14 @@
 #'   \item{In any other case function returns invisibly a data frame with
 #'   corrected data on registrations.}
 #' }
-#' @importFrom dplyr group_by mutate n one_of summarise filter semi_join
+#' @importFrom dplyr filter group_by mutate n one_of rename semi_join summarise
 #' @importFrom utils write.csv2
+#' @examples
+#' \dontrun{
+#' prepare_registrations("inst/pr_zapisy.xlsx", "inst/pr_wyniki.xlsx",
+#'                       "dane/dane-IRK poprawione.csv", "inst/pr_usos.xlsx",
+#'                       "inst/pr_rek_irk.xlsx", "inst/pr_rek_usos.xlsx")
+#' }
 #' @export
 prepare_registrations <- function(registrations = NULL, scores = NULL,
                                   output = NULL, usosAdmission = NULL,
@@ -152,18 +158,6 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                          "słowniku do przekodowywania kodów IRK")
     recRegistrations <- recRegistrations %>%
       select(studia, studia_rec)
-    testRecReg <- anti_join(registrations, recRegistrations) %>% nrow()
-    irkMer <- 1
-    if (testRecReg > 0) {
-      switch(menu(c("Zignoruj - kody niewymienione w słowniku zostaną usunięte.",
-                    "Użyj kodów niewymienionych w słowniku w formie, w jakiej występują w pliku z rekrutacjami.",
-                    "Zatrzymaj działanie programu."),
-                  title = paste0("W pliku z rekrutacjami występują kody studiów, które nie występują w słowniku kodów IRK.\n",
-                                 "W jaki sposób mają być potraktowane brakujące kody?")),
-             irkMer <- 1,
-             irkMer <- 2,
-             stop("Zatrzymanie przez użytkownika.", call. = FALSE))
-    }
   }
 
   if (mergeType == 2) {
@@ -186,18 +180,6 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                          "słowniku do przekodowywania danych USOS")
     recUsos <- recUsos %>%
       select(program, etap, studia_rec)
-    testRecUsos <- anti_join(usosAdmission,recUsos) %>% nrow()
-    usosMer <- 1
-    if (testRecUsos > 0) {
-      switch(menu(c("Zignoruj - kody niewymienione w słowniku zostaną usunięte.",
-                    "Użyj kodów niewymienionych w słowniku w formie, w jakiej występują w pliku z przyjętymi wg USOS.",
-                    "Zatrzymaj działanie programu."),
-                  title = paste0("W pliku z przyjętymi wg USOS występują kody studiów, które nie występują w słowniku kodów USOS\n",
-                                 "W jaki sposób mająbyć potraktowane brakujące kody?")),
-             usosMer <- 1,
-             usosMer <- 2,
-             stop("Zatrzymanie przez użytkownika.", call. = FALSE))
-    }
   }
 
   #-----------------------------------------------------------------------------
@@ -205,18 +187,20 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   if (recIRK == 2) {
     cat("--------------------\n",
-        "Przekodowywanie kodów studiów w pliku z danymi o rekrutacjach.\n---\n",
+        "Przekodowywanie kodów studiów w pliku z danymi o rekrutacjach.\n",
+        "---\nŁączenie danych o rejestracjach z instrukcją przekształcenia kodów studiów w danych IRK.\n",
         sep = "")
     registrations <- join_with_check(registrations,
                                      suppressMessages(semi_join(recRegistrations,
                                                                 registrations)),
                                    "danych o rekrutacjach",
                                    "zmienionych kodach IRK")
+    irkMer <- check_rec_joining(registrations, recRegistrations,
+                                "pliku z rekrutacjami", "słowniku kodów IRK")
     if (irkMer == 2) {
       registrations <- registrations %>%
         mutate(studia_rec = ifelse(is.na(studia_rec), studia, studia_rec))
     }
-
     registrations <- registrations %>%
       select(-studia) %>%
       rename(studia = studia_rec) %>%
@@ -227,16 +211,20 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   if (mergeType == 2) {
     cat("--------------------\n",
-        "Przekodowywanie kodów studiów w pliku z danymi USOS o przyjęciach.\n---\n",
+        "Przekodowywanie kodów studiów w pliku z danymi USOS o przyjęciach.\n",
+        "---\nŁączenie danych o przyjęciach z instrukcją przekształcenia kodów studiów w danych USOS.\n",
         sep = "")
     usosAdmission <- join_with_check(usosAdmission,
                                      suppressMessages(semi_join(recUsos,
                                                                 usosAdmission)),
                                      "danych z USOS o przyjęciach",
                                      "zmienionych kodach USOS")
+    usosMer <- check_rec_joining(usosAdmission, recUsos,
+                                 "pliku z przyjętymi wg USOS",
+                                 "słowniku kodów USOS")
     if (usosMer == 2) {
       usosAdmission <- usosAdmission %>%
-        mutate(studia_rec = ifelse(is.na(studia_rec), studia, studia_rec))
+        mutate(studia_rec = ifelse(is.na(studia_rec), program, studia_rec))
     }
     usosAdmission <- usosAdmission %>%
       select(pesel, studia = studia_rec) %>%
@@ -247,7 +235,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
         przyjetyUsos = sum(przyjety %in% "1") # a person can apply to a double programme which means being a student at two programmes.
       ) %>%
       ungroup()
-    cat("---\n")
+    cat("---\nŁączenie danych o przyjęciach z danymi o rejestracjach.\n")
     registrations <- join_with_check(registrations,
                                      suppressMessages(semi_join(usosAdmission,
                                                                 registrations)),

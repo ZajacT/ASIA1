@@ -42,3 +42,10 @@ acepted applicants, checking and correcting multiple registrations i.e. cases
 that an applicant applies more than one time to a given program, adding data
 on scores to the data on registrations.
 }
+\examples{
+\dontrun{
+prepare_registrations("inst/pr_zapisy.xlsx", "inst/pr_wyniki.xlsx",
+                      "dane/dane-IRK poprawione.csv", "inst/pr_usos.xlsx",
+                      "inst/pr_rek_irk.xlsx", "inst/pr_rek_usos.xlsx")
+}
+}
