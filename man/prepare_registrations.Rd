@@ -4,8 +4,9 @@
 \alias{prepare_registrations}
 \title{Preparing recrutation data for analysis}
 \usage{
-prepare_registrations(registrations = NULL, scores = NULL, output = NULL,
-  usosAdmission = NULL, recRegistrations = NULL, recUsos = NULL)
+prepare_registrations(registrations = NULL, scores = NULL,
+  output = NULL, usosAdmission = NULL, recRegistrations = NULL,
+  recUsos = NULL)
 }
 \arguments{
 \item{registrations}{optionally a path to the file with data on registrations}

@@ -148,26 +148,25 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     }
     recRegistrations <- read_file(recRegistrations, columnsToCharacter = FALSE)
     check_variable_names(recRegistrations,
-                         c("studia","studia_rec"),
+                         c("studia", "studia_rec"),
                          "słowniku do przekodowywania kodów IRK")
     recRegistrations <- recRegistrations %>%
       select(studia, studia_rec)
-    testRecReg <- anti_join(registrations,recRegistrations) %>% nrow()
+    testRecReg <- anti_join(registrations, recRegistrations) %>% nrow()
     irkMer <- 1
-    if(testRecReg > 0){
-      switch(menu(c("Zignoruj - kody nie wymienione w słowniku zostaną usunięte",
-                    "Kody niewymienione w słowniku skopiuj do nowej kolumny",
-                    "Zatrzymaj"),
-                  title = paste0("W pliku z rekrutacjami występują kody studiów, które nie występują w słowniku kodów IRK.\n
-                                 W jaki sposób mająbyć potraktowane brakujące kody")),
+    if (testRecReg > 0) {
+      switch(menu(c("Zignoruj - kody niewymienione w słowniku zostaną usunięte.",
+                    "Użyj kodów niewymienionych w słowniku w formie, w jakiej występują w pliku z rekrutacjami.",
+                    "Zatrzymaj działanie programu."),
+                  title = paste0("W pliku z rekrutacjami występują kody studiów, które nie występują w słowniku kodów IRK.\n",
+                                 "W jaki sposób mają być potraktowane brakujące kody?")),
              irkMer <- 1,
              irkMer <- 2,
-             stop(paste0("zatrzymanie przez użytkownika"), call. = FALSE))
+             stop("Zatrzymanie przez użytkownika.", call. = FALSE))
     }
   }
 
   if (mergeType == 2) {
-
     if (is.null(usosAdmission)) {
       usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
     }
@@ -189,15 +188,15 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
       select(program, etap, studia_rec)
     testRecUsos <- anti_join(usosAdmission,recUsos) %>% nrow()
     usosMer <- 1
-    if(testRecUsos > 0){
-      switch(menu(c("Zignoruj - kody nie wymienione w słowniku zostaną usunięte",
-                    "Kody niewymienione w słowniku skopiuj do nowej kolumny",
-                    "Zatrzymaj"),
-                  title = paste0("W pliku z przyjętymi wg USOS występują kody studiów, które nie występują w słowniku kodów USOS\n
-                                 W jaki sposób mająbyć potraktowane brakujące kody")),
+    if (testRecUsos > 0) {
+      switch(menu(c("Zignoruj - kody niewymienione w słowniku zostaną usunięte.",
+                    "Użyj kodów niewymienionych w słowniku w formie, w jakiej występują w pliku z przyjętymi wg USOS.",
+                    "Zatrzymaj działanie programu."),
+                  title = paste0("W pliku z przyjętymi wg USOS występują kody studiów, które nie występują w słowniku kodów USOS\n",
+                                 "W jaki sposób mająbyć potraktowane brakujące kody?")),
              usosMer <- 1,
              usosMer <- 2,
-             stop(paste0("zatrzymanie przez użytkownika"), call. = FALSE))
+             stop("Zatrzymanie przez użytkownika.", call. = FALSE))
     }
   }
 
@@ -212,12 +211,12 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                      suppressMessages(semi_join(recRegistrations,
                                                                 registrations)),
                                    "danych o rekrutacjach",
-                                   "zmienionych kodach IRK") 
+                                   "zmienionych kodach IRK")
     if (irkMer == 2) {
-      registrations <- registrations %>% 
-        mutate(studia_rec = ifelse(is.na(studia_rec),studia,studia_rec))
+      registrations <- registrations %>%
+        mutate(studia_rec = ifelse(is.na(studia_rec), studia, studia_rec))
     }
-    
+
     registrations <- registrations %>%
       select(-studia) %>%
       rename(studia = studia_rec) %>%
@@ -235,14 +234,15 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                                                 usosAdmission)),
                                      "danych z USOS o przyjęciach",
                                      "zmienionych kodach USOS")
-    if (usosMer == 2){
+    if (usosMer == 2) {
       usosAdmission <- usosAdmission %>%
-        mutate(studia_rec = ifelse(is.na(studia_rec),studia,studia_rec))
+        mutate(studia_rec = ifelse(is.na(studia_rec), studia, studia_rec))
     }
     usosAdmission <- usosAdmission %>%
-      select("pesel","studia" = "studia_rec") %>%
+      select(pesel, studia = studia_rec) %>%
+      filter(!is.na(studia)) %>%
       mutate(przyjety = 1) %>%
-      group_by(pesel,studia) %>%
+      group_by(pesel, studia) %>%
       summarise(
         przyjetyUsos = sum(przyjety %in% "1") # a person can apply to a double programme which means being a student at two programmes.
       ) %>%
@@ -254,7 +254,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                      "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
       mutate(przyjetyUsos = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
-      mutate(przyjetyUsos = ifelse((przyjetyUsos > 0 & zakwalifikowany %in% "0" ),
+      mutate(przyjetyUsos = ifelse(przyjetyUsos > 0 & zakwalifikowany %in% "0" ,
                                    "0", przyjetyUsos ))
   }
   #-----------------------------------------------------------------------------
