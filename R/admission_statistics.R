@@ -50,15 +50,18 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
       "Sprawdzanie poprawności danych w pliku z rejestracjami.\n",
       sep = "")
   check_variable_names(registrations,
-                       c("pesel", paste0(groupingVariable), "rej", "zak","prz","pkt"),
+                       c("pesel", paste0(groupingVariable), "rej", "zak", "prz",
+                         "pkt"),
                        "danych o rekrutacjach")
-  registrations <- registrations %>% select(!!groupingVariable,pesel,rej,zak,prz,pkt)
-  registrations[, 2:6] <- sapply(registrations[, 2:6], as.numeric)
-  check_variable_values(registrations$rej,valMin = 0,valMax = 10)
-  check_variable_values(registrations$zak,valMin = 0,valMax = 10)
-  check_variable_values(registrations$prz,valMin = 0,valMax = 10)
-  check_variable_values(registrations$pkt,valMin = 0)
-  
+  registrations <- registrations %>%
+    select(!!groupingVariable, pesel, rej, zak, prz, pkt)
+  registrations[, 2:6] <- suppressWarnings(
+    sapply(registrations[, 2:6], as.numeric))
+  check_variable_values(registrations$rej, valMin = 0, valMax = 10)
+  check_variable_values(registrations$zak, valMin = 0, valMax = 10)
+  check_variable_values(registrations$prz, valMin = 0, valMax = 10)
+  check_variable_values(registrations$pkt, valMin = 0)
+
   if (is.null(exams)) {
     exams <- choose_file(" z danymi o wynikach egzaminów")
   }
@@ -70,28 +73,32 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
   check_variable_names(exams,
                        c("pesel", "egzamin", "wynik_p", "wynik_r"),
                        "danych o egzaminach")
-  exams <- exams %>% select(egzamin,pesel,wynik_p,wynik_r)
-  exams[, 2:4] <- sapply(exams[, 2:4], as.numeric)
-  check_variable_values(exams$wynik_p,valMin = 0,valMax = 100)
-  check_variable_values(exams$wynik_r,valMin = 0,valMax = 100)
-  
+  exams <- exams %>%
+    select(egzamin, pesel, wynik_p, wynik_r)
+  exams[, 2:4] <- suppressWarnings(
+    sapply(exams[, 2:4], as.numeric))
+  check_variable_values(exams$wynik_p, valMin = 0, valMax = 100)
+  check_variable_values(exams$wynik_r, valMin = 0, valMax = 100)
+
   if (is.null(limits)) {
     limits <- choose_file(" limitami przyjęć")
   }
   check_input_path(limits, "limits")
   limits <- read_file(limits, columnsToCharacter = FALSE)
-  check_variable_names(limits,
-                       c(paste0(groupingVariable),"limitog", "limitp", "limitc", "maxpkt"),
-                       "danych o limitach")
-  limits <- limits %>% select(!!groupingVariable,limitog,limitp,limitc,maxpkt)
-  limits[, 2:5] <- sapply(limits[, 2:5], as.numeric)
   cat("--------------------\n",
       "Sprawdzanie poprawności danych w pliku z limitami.\n",
       sep = "")
-  check_variable_values(limits$limitog,valMin = 0,valMax = 10000)
-  check_variable_values(limits$limitp,valMin = 0,valMax = 10000)
-  check_variable_values(limits$limitc,valMin = 0,valMax = 10000)
-  check_variable_values(limits$maxpkt,valMin = 0)
+  check_variable_names(limits,
+                       c(groupingVariable, "limitog", "limitp","limitc", "maxpkt"),
+                       "danych o limitach")
+  limits <- limits %>%
+    select(!!groupingVariable, limitog, limitp, limitc, maxpkt)
+  limits[, 2:5] <- suppressWarnings(
+    sapply(limits[, 2:5], as.numeric))
+  check_variable_values(limits$limitog, valMin = 0, valMax = 10000)
+  check_variable_values(limits$limitp, valMin = 0, valMax = 10000)
+  check_variable_values(limits$limitc, valMin = 0, valMax = 10000)
+  check_variable_values(limits$maxpkt, valMin = 0)
 
   if (is.null(output)) {
     output <- choose_file(", w którym mają zostać zapisane statystyki rekrutacyjne (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
@@ -135,10 +142,6 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
   #-----------------------------------------------------------------------------
   #|-> Exam scores
   #-----------------------------------------------------------------------------
-  exams$wynik_p <- as.numeric(ifelse(exams$wynik_p == "NULL",
-                                     "", exams$wynik_p))
-  exams$wynik_r <- as.numeric(ifelse(exams$wynik_r == "NULL",
-                                     "", exams$wynik_r))
   exams <- exams %>%
     filter(grepl("^M_", egzamin)) %>%
     select(pesel, egzamin, wynik_p, wynik_r) %>%
@@ -149,7 +152,7 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     mutate(wynik = max(wynik)) %>%
     ungroup()
   exams <- suppressMessages(semi_join(exams, registrations))
-  
+
   matResults <- suppressMessages(registrations %>%
                                    filter(prz > 0) %>%
                                    inner_join(exams)) %>%
@@ -172,8 +175,8 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
            statystyka = factor(statystyka, levels = unique(statystyka))) %>% # this is meant to fix the desired order of columns after spread is executed
     select(-egzamin) %>%
     spread(statystyka, wartosc)
-    
-    
+
+
   cat("Przyłączanie danych o wynikach egzaminów maturalnych.\n")
   results <- join_with_check(results, matResults,
                              "danych o przyjęciach",
@@ -188,7 +191,7 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
       MAXPKT = max(maxpkt, na.rm = TRUE)
     ) %>%
     ungroup()
-  
+
   cat("Przyłączanie danych o limitach przyjęć.\n")
   results <- join_with_check(limits, results,
                              "danych o limitach przyjęć",
@@ -208,5 +211,4 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     cat("Zapisano Statystyki do pliku '", output, "'.\n", sep = "")
   }
   invisible(results)
-   
 }
