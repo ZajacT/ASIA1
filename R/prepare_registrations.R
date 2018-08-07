@@ -257,7 +257,8 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
       prz = sum(przyjety %in% "1"), # how many times an applicant enrolled
       pkt = suppressWarnings(
         max(wynik[!is.na(wynik)])) # the highest achieved score
-    ) %>%
+    ) %>% 
+    mutate(pkt = ifelse(pkt == -Inf, NA, pkt)) %>%
     ungroup()
   #-----------------------------------------------------------------------------
   #|-> Here writing results to a file starts
