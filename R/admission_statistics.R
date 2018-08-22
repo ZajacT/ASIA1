@@ -18,9 +18,11 @@
 #' returned invisibly).
 #' @examples
 #' \dontrun{
-#'   admisssion_statistics()
+#'   admission_statistics("studia", "inst/pr_pop_rek.csv",
+#'                        "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
+#'                        "statistics.csv")
 #' }
-#' @importFrom dplyr filter group_by mutate n semi_join summarise
+#' @importFrom dplyr arrange filter group_by inner_join mutate n semi_join summarise
 #' @importFrom rlang ensym
 #' @importFrom stats quantile
 #' @importFrom tidyr gather spread
@@ -50,8 +52,8 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
       "Sprawdzanie poprawności danych w pliku z rejestracjami.\n",
       sep = "")
   check_variable_names(registrations,
-                       c("pesel", paste0(groupingVariable), "rej", "zak", "prz",
-                         "pkt"),
+                       c("pesel", as.character(groupingVariable), "rej", "zak",
+                         "prz", "pkt"),
                        "danych o rekrutacjach")
   registrations <- registrations %>%
     select(!!groupingVariable, pesel, rej, zak, prz, pkt)
@@ -89,7 +91,8 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
       "Sprawdzanie poprawności danych w pliku z limitami.\n",
       sep = "")
   check_variable_names(limits,
-                       c(groupingVariable, "limitog", "limitp","limitc", "maxpkt"),
+                       c(as.character(groupingVariable), "limitog", "limitp",
+                         "limitc", "maxpkt"),
                        "danych o limitach")
   limits <- limits %>%
     select(!!groupingVariable, limitog, limitp, limitc, maxpkt)
@@ -109,11 +112,6 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     if (!(check_output_path(output, "output") %in% TRUE)) {
       output <- NA
     }
-  }
-
-  if (!(as.character(groupingVariable) %in% names(registrations))) {
-    stop(paste0("Zmienna grupująca podana argumentem groupingVariable ('",
-                groupingVariable, "') nie występuje w danych o rekrutacjach."))
   }
   #-----------------------------------------------------------------------------
   #|-> Here starts summarising the data
@@ -176,8 +174,7 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     select(-egzamin) %>%
     spread(statystyka, wartosc)
 
-
-  cat("Przyłączanie danych o wynikach egzaminów maturalnych.\n")
+  cat("\n---\nPrzyłączanie danych o wynikach egzaminów maturalnych.\n")
   results <- join_with_check(results, matResults,
                              "danych o przyjęciach",
                              "danych o wynikach maturalnych")
@@ -192,7 +189,7 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     ) %>%
     ungroup()
 
-  cat("Przyłączanie danych o limitach przyjęć.\n")
+  cat("\n---\nPrzyłączanie danych o limitach przyjęć.\n")
   results <- join_with_check(limits, results,
                              "danych o limitach przyjęć",
                              "danych o rekrutacjach")

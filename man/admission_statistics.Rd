@@ -37,6 +37,8 @@ interactively with a system file-selection dialog.
 }
 \examples{
 \dontrun{
-  admisssion_statistics()
+  admission_statistics("studia", "inst/pr_pop_rek.csv",
+                       "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
+                       "statistics.csv")
 }
 }
