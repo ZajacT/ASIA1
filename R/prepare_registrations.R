@@ -241,9 +241,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                                                 registrations)),
                                      "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
-      mutate(przyjetyUsos = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
-      mutate(przyjetyUsos = ifelse(przyjetyUsos > 0 & zakwalifikowany %in% "0" ,
-                                   "0", przyjetyUsos ))
+      mutate(przyjety = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
+      mutate(przyjety = ifelse(przyjetyUsos > 0 & zakwalifikowany %in% "0" ,
+                                   "0", przyjety ))
   }
   #-----------------------------------------------------------------------------
   #|-> Here the merging of the records starts
