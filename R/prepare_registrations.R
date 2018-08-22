@@ -241,9 +241,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                                                 registrations)),
                                      "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
-      mutate(przyjety = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
+      mutate(przyjetyUsos = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
       mutate(przyjety = ifelse(przyjetyUsos > 0 & zakwalifikowany %in% "0" ,
-                                   "0", przyjety ))
+                                   "0", przyjetyUsos ))
   }
   #-----------------------------------------------------------------------------
   #|-> Here the merging of the records starts
@@ -254,7 +254,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     summarise(
       rej = sum(czy_oplacony %in% "1"), # how many times an applicant registered
       zak = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
-      prz = sum(przyjety %in% "1"), # how many times an applicant enrolled
+      prz = suppressWarnings(sum(as.numeric(przyjety))), # how many times an applicant enrolled
       pkt = suppressWarnings(
         max(wynik[!is.na(wynik)])) # the highest achieved score
     ) %>% 
