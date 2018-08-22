@@ -4,8 +4,9 @@
 \alias{prepare_registrations}
 \title{Preparing recrutation data for analysis}
 \usage{
-prepare_registrations(registrations = NULL, scores = NULL, output = NULL,
-  usosAdmission = NULL, recRegistrations = NULL, recUsos = NULL)
+prepare_registrations(registrations = NULL, scores = NULL,
+  output = NULL, usosAdmission = NULL, recRegistrations = NULL,
+  recUsos = NULL)
 }
 \arguments{
 \item{registrations}{optionally a path to the file with data on registrations}
@@ -26,10 +27,8 @@ programme codes in USOS data}
 \itemize{
   \item{If problems were found in registrations data or recruitment scores
   data and user choose to tag (at least some of) them, function returns
-  invisibly a list with two elements that are data frames:
-  \code{registrations} and \code{scores}. These are data frames containing
-  input data with tagged problems (and possibly corrected other problems,
-   that user choose not to tag, but to correct).}
+  invisibly a data frame with tagged (and possibly corrected with respect to
+  other problems, that user chose to correct, not to tag) dataset.}
   \item{In any other case function returns invisibly a data frame with
   corrected data on registrations.}
 }

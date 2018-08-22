@@ -16,10 +16,8 @@
 #' \itemize{
 #'   \item{If problems were found in registrations data or recruitment scores
 #'   data and user choose to tag (at least some of) them, function returns
-#'   invisibly a list with two elements that are data frames:
-#'   \code{registrations} and \code{scores}. These are data frames containing
-#'   input data with tagged problems (and possibly corrected other problems,
-#'    that user choose not to tag, but to correct).}
+#'   invisibly a data frame with tagged (and possibly corrected with respect to
+#'   other problems, that user chose to correct, not to tag) dataset.}
 #'   \item{In any other case function returns invisibly a data frame with
 #'   corrected data on registrations.}
 #' }
@@ -39,8 +37,6 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #|-> Here is the begining of data import and checks
   #-----------------------------------------------------------------------------
   cat("--------------------\n")
-  taggedProblems = FALSE
-
   if (is.null(registrations)) {
     registrations <- choose_file(" z danymi o rekrutacjach")
   }
@@ -60,7 +56,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                  fileEncoding = "UTF-8")
       cat("Zapisano dane do pliku '", file, "'.\n", sep = "")
     }
-    taggedProblems <-  TRUE
+    return(invisible(registrationsChecked))
   }
   registrations = registrationsChecked
   rm(registrationsChecked)
@@ -85,25 +81,21 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                  fileEncoding = "UTF-8")
       cat("Zapisano dane do pliku '", file, "'.\n", sep = "")
     }
-    taggedProblems <-  TRUE
+    return(invisible(scoresChecked))
   }
   scores = scoresChecked %>%
     select(-one_of(setdiff(intersect(names(scores), names(registrations)),
                            c("pesel", "studia"))))
   rm(scoresChecked)
-
-  if (taggedProblems) {
-    return(invisible(list(registrations = registrations,
-                          scores = scores)))
-  }
-
   #-----------------------------------------------------------------------------
   #|-> Data merging begins here
   #-----------------------------------------------------------------------------
   cat("--------------------\n",
       "Łączenie pliku z danymi o rekrutacjach z danymi o punktach rekrutacyjnych.\n",
       sep = "")
-  registrations <- join_with_check(registrations, scores,
+  registrations <- join_with_check(registrations,
+                                   suppressMessages(semi_join(scores,
+                                                              registrations)),
                                    "danych o rekrutacjach",
                                    "danych o punktach rekrutacyjnych")
   #-----------------------------------------------------------------------------
@@ -257,7 +249,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
       prz = suppressWarnings(sum(as.numeric(przyjety))), # how many times an applicant enrolled
       pkt = suppressWarnings(
         max(wynik[!is.na(wynik)])) # the highest achieved score
-    ) %>% 
+    ) %>%
     mutate(pkt = ifelse(pkt == -Inf, NA, pkt)) %>%
     ungroup()
   #-----------------------------------------------------------------------------
