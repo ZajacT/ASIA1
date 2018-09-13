@@ -198,13 +198,30 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
       rename(studia = studia_rec) %>%
       filter(!is.na(studia))
   }
+
+  #-----------------------------------------------------------------------------
+  #|-> Here the merging of the records starts
+  #-----------------------------------------------------------------------------
+  cat("--------------------\nPrzekształcanie danych.\n")
+  dataOnRegistrations <- registrations %>%
+    group_by(studia,pesel) %>%
+    summarise(
+      rej = sum(czy_oplacony %in% "1"), # how many times an applicant registered
+      zak = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
+      prz = sum(przyjety %in% "1"), # how many times an applicant enrolled
+      pkt = suppressWarnings(
+        max(wynik[!is.na(wynik)])) # the highest achieved score
+    ) %>%
+    mutate(pkt = ifelse(pkt == -Inf, NA, pkt)) %>%
+    ungroup()
+  
   #-----------------------------------------------------------------------------
   #|-> Here programme codes are recoded and USOS data replace IRK data on enrolment
   #-----------------------------------------------------------------------------
   if (mergeType == 2) {
     cat("--------------------\n",
         "Przekodowywanie kodów studiów w pliku z danymi USOS o przyjęciach.\n",
-        "---\nŁączenie danych o przyjęciach z instrukcją przekształcenia kodów studiów w danych USOS.\n",
+        "---\nŁączenie danych USOS o przyjęciach z instrukcją przekształcenia kodów studiów w danych USOS.\n",
         sep = "")
     usosAdmission <- join_with_check(usosAdmission,
                                      suppressMessages(semi_join(recUsos,
@@ -227,31 +244,19 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
         przyjetyUsos = sum(przyjety %in% "1") # a person can apply to a double programme which means being a student at two programmes.
       ) %>%
       ungroup()
-    cat("---\nŁączenie danych o przyjęciach z danymi o rejestracjach.\n")
-    registrations <- join_with_check(registrations,
+    cat("---\nŁączenie danych USOS o przyjęciach z danymi o rejestracjach.\n")
+    dataOnRegistrations <- join_with_check(dataOnRegistrations,
                                      suppressMessages(semi_join(usosAdmission,
-                                                                registrations)),
+                                                                dataOnRegistrations)),
                                      "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
       mutate(przyjetyUsos = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
-      mutate(przyjety = ifelse(przyjetyUsos > 0 & zakwalifikowany %in% "0" ,
-                                   "0", przyjetyUsos ))
+      mutate(prz = ifelse(przyjetyUsos > 0 & zak %in% "0" ,
+                               "0", przyjetyUsos )) %>%
+      select(-przyjetyUsos)
   }
-  #-----------------------------------------------------------------------------
-  #|-> Here the merging of the records starts
-  #-----------------------------------------------------------------------------
-  cat("--------------------\nPrzekształcanie danych.\n")
-  dataOnRegistrations <- registrations %>%
-    group_by(studia,pesel) %>%
-    summarise(
-      rej = sum(czy_oplacony %in% "1"), # how many times an applicant registered
-      zak = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
-      prz = suppressWarnings(sum(as.numeric(przyjety))), # how many times an applicant enrolled
-      pkt = suppressWarnings(
-        max(wynik[!is.na(wynik)])) # the highest achieved score
-    ) %>%
-    mutate(pkt = ifelse(pkt == -Inf, NA, pkt)) %>%
-    ungroup()
+  
+  
   #-----------------------------------------------------------------------------
   #|-> Here writing results to a file starts
   #-----------------------------------------------------------------------------
