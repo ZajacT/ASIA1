@@ -1,5 +1,6 @@
 #' @title Checking the correctness of a recrutation data
-#' @description We should write something here
+#' @description Function checks the correctness of a recrutation data for
+#' purpose of ongoing recrutation process.
 #' @param groupingVariable optionally name of a grouping variable that should be
 #' used in analysis given as a string or as a name/symbol
 #' @param registrations optionally path to the file with data on registrations
@@ -20,10 +21,6 @@
 #' @return Data frame (tibble) with computed summary statistics - the same as
 #' written to a file described with the \code{output} parameter (data frame is
 #' returned invisibly).
-#' @examples
-#' \dontrun{
-#'   check_data()
-#' }
 #' @importFrom dplyr group_by mutate n summarise filter
 #' @importFrom rlang ensym
 #' @importFrom utils write.csv2
