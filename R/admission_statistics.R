@@ -22,7 +22,7 @@
 #'                        "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
 #'                        "statistics.csv")
 #' }
-#' @importFrom dplyr arrange filter group_by inner_join mutate n semi_join summarise
+#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise
 #' @importFrom rlang ensym
 #' @importFrom stats quantile
 #' @importFrom tidyr gather spread
@@ -193,8 +193,8 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
   results <- join_with_check(limits, results,
                              "danych o limitach przyjęć",
                              "danych o rekrutacjach")
-  
-  # adding selectivity indices 
+
+  # adding selectivity indices
   results <- results %>%
     mutate(
       KM = round(NREJ/LIM_OG, 2),
@@ -202,7 +202,7 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
       PZ = round(NPRZ/NZAK, 2)
     ) %>%
     mutate_all(funs(ifelse(. == -Inf, NA, .)))
-  
+
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
