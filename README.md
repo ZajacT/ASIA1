@@ -1,6 +1,6 @@
 # ASIA_I
 
-Pakiet do kontroli jakości danych rekrytacyjnych.
+Pakiet do kontroli jakości danych rekrutacyjnych.
 
 [![Travis-CI Build Status](https://travis-ci.org/ZajacT/ASIA1.png?branch=master)](https://travis-ci.org/ZajacT/ASIA1)
 [![Coverage Status](https://coveralls.io/repos/ZajacT/ASIA1/badge.svg?branch=master&service=github)](https://coveralls.io/github/ZajacT/ASIA1?branch=master)
@@ -38,10 +38,24 @@ Przy takim wywołaniu funkcji pliki z danymi do wczytania oraz plik, w którym z
 
 ### Lista kandydatów zagranicznych
 
-Aby uzyskać informacje o zagranicznych kandydatach w konsoli:
+Aby uzyskać informacje o zagranicznych kandydatach wpisz w konsoli:
 
 ```r
 foreigners()
 ```
 
+### Przygotowanie danych do raportów rekrutacyjnych - wstępna obróbka danych indywidualnych 
 
+Aby przygotować zbiór danych indywidualnych (sprawdzić spójność i ewentualnie wprowadzić poprawki) wpisz w konsoli: 
+
+```r
+prepare_registrations()
+```
+
+### Przygotowanie danych do raportów rekrutacyjnych - przygotowanie statystyk dla poszczególnych kierunków studiów 
+
+Aby przygotować zestaw statystyk opisujących przebieg rekrutacji na poszczególne kierunki studiów wpisz w konsoli: 
+
+```r
+admission_statistics()
+```
