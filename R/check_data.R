@@ -138,13 +138,14 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
       NPRZ_R = sum(przyjety %in% "R"),
       NPRZ_BD = NREJ - NPRZ_0 - NPRZ_1 - NPRZ_R,
       NPRZ_OBC_STYP = sum(przyjety %in% "1" & styp %in% "1"),
-      NBLPKT = sum(wynik < 0, na.rm = TRUE), # errors
+      NBLPKT = sum(wynik < 0, na.rm = TRUE), # number of observations with a negative number of points
       NBLZAKKAN = sum(!(czy_oplacony %in% "1") & zakwalifikowany %in% "1"),
       NBLPRZZAK = sum(!(zakwalifikowany %in% "1") & przyjety %in% "1"),
       MINWYN = ifelse(is.finite(MINWYN[1]), MINWYN[1], NA),
-      NBLZAKPKT = sum(zakwalifikowany %in% "1" & wynik >= MINWYN & !is.na(wynik))
+      NBLZAKPKT = sum(czy_oplacony %in% "1" & zakwalifikowany %in% "0" & wynik >= MINWYN & !is.na(wynik)) # checks if someone has not been admitted despite having more points than the last admitted.
     ) %>%
     ungroup()
+  
   # adding limits
   dictionary <- dictionary %>%
     group_by(!!groupingVariable) %>%
