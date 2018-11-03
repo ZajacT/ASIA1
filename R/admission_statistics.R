@@ -129,11 +129,13 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
     NREJ = sum(rej > 0), # number of registrations
     NZAK = sum(zak > 0), # number of qualified cand.
     NPRZ = sum(prz > 0), # number of admitted cand.
-    PRZ_PKT_NNa = sum(!is.na(pkt)),
+    PRZ_PKT_NNa = sum(!is.na(pkt) & prz > 0),
+    PRZ_PKT_MIN = round(min(PKT_PRZ, na.rm = TRUE), 0),
     PRZ_PKT_D1 = round(quantile(PKT_PRZ, probs = 0.10,  na.rm = TRUE), 0),
     PRZ_PKT_Q1 = round(quantile(PKT_PRZ, probs = 0.25,  na.rm = TRUE), 0),
     PRZ_PKT_Q3 = round(quantile(PKT_PRZ, probs = 0.75,  na.rm = TRUE), 0),
     PRZ_PKT_D9 = round(quantile(PKT_PRZ, probs = 0.90,  na.rm = TRUE), 0),
+    PRZ_PKT_MAX = round(min(PKT_PRZ, na.rm = TRUE), 0),
     PRZ_PKT_MEA = round(mean(PKT_PRZ, na.rm = TRUE), 0)
   ) %>%
     ungroup()
