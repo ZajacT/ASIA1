@@ -1,5 +1,7 @@
-#' @title Summarises admissions
-#' @description The function computes a set of indicators describing admission process.
+#' @title Summarises admissions 
+#' @description The function computes a set of indicators describing admission process. 
+#' The function differs from admissions_statistics by focusing on the number of administrative 
+#' processes instead of on the number of people.
 #' @param groupingVariable optionally name of a grouping variable that should be
 #' used in analysis given as a string or as a name/symbol
 #' @param registrations optionally path to the file with data on registrations
@@ -18,7 +20,7 @@
 #' returned invisibly).
 #' @examples
 #' \dontrun{
-#'   admission_statistics("studia", "inst/pr_pop_rek.csv",
+#'   admission_statistics2("studia", "inst/pr_pop_rek.csv",
 #'                        "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
 #'                        "statistics.csv")
 #' }
@@ -28,7 +30,7 @@
 #' @importFrom tidyr gather spread
 #' @importFrom utils write.csv2
 #' @export
-admission_statistics <- function(groupingVariable = "studia", registrations = NULL,
+admission_statistics2 <- function(groupingVariable = "studia", registrations = NULL,
                                  exams = NULL, limits = NULL, output = NULL) {
   errorGroupingVariableFormatMessage = "Zmienna grupująca musi zostać podana jako ciąg znaków (jednoelementowy wektor typu character) lub jako wyrażenie (nazwa zmiennej nie ujęta w cudzysłów)."
   groupingVariable <-
@@ -126,9 +128,9 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
            PKT_PRZ = ifelse(LICZ_Q, PKT_PRZ, NA)) %>%
   # summarising
   summarise(
-    NREJ = sum(rej > 0), # number of registrations
-    NZAK = sum(zak > 0), # number of qualified cand.
-    NPRZ = sum(prz > 0), # number of admitted cand.
+    NREJ = sum(rej), # total number of registrations - it is possible that a candidate registers more than once
+    NZAK = sum(zak), # number of registrations resulting in admission
+    NPRZ = sum(prz), # number of registrations resulting in enrollment.
     PRZ_PKT_NNa = sum(!is.na(pkt) & prz > 0),
     PRZ_PKT_MIN = round(min(PKT_PRZ, na.rm = TRUE), 0),
     PRZ_PKT_D1 = round(quantile(PKT_PRZ, probs = 0.10,  na.rm = TRUE), 0),
