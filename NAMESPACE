@@ -2,6 +2,7 @@
 
 export(admission_statistics)
 export(admission_statistics2)
+export(admission_statistics3)
 export(check_data)
 export(check_registrations)
 export(check_registrations_with_scores)
