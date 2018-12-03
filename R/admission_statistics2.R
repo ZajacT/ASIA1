@@ -137,7 +137,7 @@ admission_statistics2 <- function(groupingVariable = "studia", registrations = N
     PRZ_PKT_Q1 = round(quantile(PKT_PRZ, probs = 0.25,  na.rm = TRUE), 0),
     PRZ_PKT_Q3 = round(quantile(PKT_PRZ, probs = 0.75,  na.rm = TRUE), 0),
     PRZ_PKT_D9 = round(quantile(PKT_PRZ, probs = 0.90,  na.rm = TRUE), 0),
-    PRZ_PKT_MAX = round(min(PKT_PRZ, na.rm = TRUE), 0),
+    PRZ_PKT_MAX = round(max(PKT_PRZ, na.rm = TRUE), 0),
     PRZ_PKT_MEA = round(mean(PKT_PRZ, na.rm = TRUE), 0)
   ) %>%
     ungroup()

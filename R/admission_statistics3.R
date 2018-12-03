@@ -111,13 +111,13 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
     NZAK = sum(zak), # number of registrations resulting in admission
     NPRZ = sum(prz), # number of registrations resulting in enrollment.
     PRZ_PKT_NNa = sum(!is.na(pkt) & prz > 0),
-    PRZ_PKT_MIN = round(min(PKT_PRZ, na.rm = TRUE), 0),
-    PRZ_PKT_D1 = round(quantile(PKT_PRZ, probs = 0.10,  na.rm = TRUE), 0),
-    PRZ_PKT_Q1 = round(quantile(PKT_PRZ, probs = 0.25,  na.rm = TRUE), 0),
-    PRZ_PKT_Q3 = round(quantile(PKT_PRZ, probs = 0.75,  na.rm = TRUE), 0),
-    PRZ_PKT_D9 = round(quantile(PKT_PRZ, probs = 0.90,  na.rm = TRUE), 0),
-    PRZ_PKT_MAX = round(min(PKT_PRZ, na.rm = TRUE), 0),
-    PRZ_PKT_MEA = round(mean(PKT_PRZ, na.rm = TRUE), 0)
+    PRZ_PKT_MIN = round(min(pkt, na.rm = TRUE), 0),
+    PRZ_PKT_D1 = round(quantile(pkt, probs = 0.10,  na.rm = TRUE), 0),
+    PRZ_PKT_Q1 = round(quantile(pkt, probs = 0.25,  na.rm = TRUE), 0),
+    PRZ_PKT_Q3 = round(quantile(pkt, probs = 0.75,  na.rm = TRUE), 0),
+    PRZ_PKT_D9 = round(quantile(pkt, probs = 0.90,  na.rm = TRUE), 0),
+    PRZ_PKT_MAX = round(max(pkt, na.rm = TRUE), 0),
+    PRZ_PKT_MEA = round(mean(pkt, na.rm = TRUE), 0)
   ) %>%
     ungroup()
   
