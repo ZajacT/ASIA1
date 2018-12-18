@@ -55,16 +55,17 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
       sep = "")
   check_variable_names(registrations,
                        c("pesel", as.character(groupingVariable), "rej", "zak",
-                         "prz", "pkt"),
+                         "prz", "pkt_kan","pkt_zak"),
                        "danych o rekrutacjach")
   registrations <- registrations %>%
-    select(!!groupingVariable, pesel, rej, zak, prz, pkt)
+    select(!!groupingVariable, pesel, rej, zak, prz, pkt_kan,pkt_zak)
   registrations[, 2:6] <- suppressWarnings(
     sapply(registrations[, 2:6], as.numeric))
   check_variable_values(registrations$rej, valMin = 0, valMax = 10)
   check_variable_values(registrations$zak, valMin = 0, valMax = 10)
   check_variable_values(registrations$prz, valMin = 0, valMax = 10)
-  check_variable_values(registrations$pkt, valMin = 0)
+  check_variable_values(registrations$pkt_zak, valMin = 0)
+  check_variable_values(registrations$pkt_kan, valMin = 0)
 
   if (is.null(limits)) {
     limits <- choose_file(" limitami przyjęć")
@@ -105,13 +106,23 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
       sep = "")
   results <- registrations %>%
     group_by(!!groupingVariable) %>%
-    mutate(PKT_PRZ = ifelse(prz > 0 & !is.na(pkt), pkt, NA),
-           pkt2 = ifelse(pkt > 0, pkt, NA)) %>%
+    mutate(PKT_PRZ = as.numeric(ifelse(prz > 0 & !is.na(pkt_zak), pkt_zak, NA)),
+           PKT_KAN = as.numeric(ifelse(rej > 0 & !is.na(pkt_kan), pkt_kan, NA))) %>%
   # summarising
   summarise(
     NREJ = sum(rej), # total number of registrations - it is possible that a candidate registers more than once
     NZAK = sum(zak), # number of registrations resulting in admission
     NPRZ = sum(prz), # number of registrations resulting in enrollment.
+    KAN_PKT_NNa = sum(!is.na(PKT_KAN) & rej > 0),
+    KAN_PKT_MIN = round(min(PKT_KAN, na.rm = TRUE), 0),
+    KAN_PKT_D1 = round(quantile(PKT_KAN, probs = 0.10,  na.rm = TRUE), 0),
+    KAN_PKT_Q1 = round(quantile(PKT_KAN, probs = 0.25,  na.rm = TRUE), 0),
+    KAN_PKT_Q3 = round(quantile(PKT_KAN, probs = 0.75,  na.rm = TRUE), 0),
+    KAN_PKT_D9 = round(quantile(PKT_KAN, probs = 0.90,  na.rm = TRUE), 0),
+    KAN_PKT_MAX = round(max(PKT_KAN, na.rm = TRUE), 0),
+    KAN_PKT_RANGE = round(max(PKT_KAN, na.rm = TRUE)-min(PKT_KAN, na.rm = TRUE), 0),
+    KAN_PKT_IQR = round(IQR(PKT_KAN, na.rm = TRUE), 0),
+    KAN_PKT_MEA = round(mean(PKT_KAN, na.rm = TRUE), 0),
     PRZ_PKT_NNa = sum(!is.na(PKT_PRZ) & prz > 0),
     PRZ_PKT_MIN = round(min(PKT_PRZ, na.rm = TRUE), 0),
     PRZ_PKT_D1 = round(quantile(PKT_PRZ, probs = 0.10,  na.rm = TRUE), 0),
@@ -119,8 +130,9 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
     PRZ_PKT_Q3 = round(quantile(PKT_PRZ, probs = 0.75,  na.rm = TRUE), 0),
     PRZ_PKT_D9 = round(quantile(PKT_PRZ, probs = 0.90,  na.rm = TRUE), 0),
     PRZ_PKT_MAX = round(max(PKT_PRZ, na.rm = TRUE), 0),
-    PRZ_PKT_MEA = round(mean(PKT_PRZ, na.rm = TRUE), 0),
-    KAN_PKT_MEA = round(mean(pkt2, na.rm = TRUE), 0)
+    PRZ_PKT_RANGE = round(max(PKT_PRZ, na.rm = TRUE)-min(PKT_PRZ, na.rm = TRUE), 0),
+    PRZ_PKT_IQR = round(IQR(PKT_PRZ, na.rm = TRUE), 0),
+    PRZ_PKT_MEA = round(mean(PKT_PRZ, na.rm = TRUE), 0)
   ) %>%
     ungroup()
   
@@ -145,10 +157,11 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
     mutate(
       KM = round(NREJ/LIM_OG, 2),
       ZK = round(NZAK/NREJ, 2),
-      PZ = round(NPRZ/NZAK, 2)
+      PZ = round(NPRZ/NZAK, 2),
+      WYP_LIM = round(NPRZ/LIM_OG,2)
     ) %>%
-    mutate_all(funs(ifelse(. == -Inf, NA, .))) %>%
-    mutate_all(funs(ifelse(. == Inf, NA, .)))
+    mutate_all(dplyr::funs(ifelse(. == -Inf, NA, .))) %>%
+    mutate_all(dplyr::funs(ifelse(. == Inf, NA, .)))
 
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
@@ -160,7 +173,7 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
     warning("Statystyki nie zostaną zapisane do pliku, ponieważ nie podano jego nazwy.",
             call. = FALSE, immediate. = TRUE)
   } else {
-    write.csv2(results, output, row.names = FALSE, na = "",
+    write.table(results, output, row.names = FALSE, na = "", dec = ".", sep = ";", quote = FALSE,
                fileEncoding = "UTF-8")
     cat("Zapisano Statystyki do pliku '", output, "'.\n", sep = "")
   }
