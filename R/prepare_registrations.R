@@ -146,10 +146,10 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     }
     recRegistrations <- read_file(recRegistrations, columnsToCharacter = FALSE)
     check_variable_names(recRegistrations,
-                         c("studia", "studia_rec"),
+                         c("studia", "studia_rec","inna_punktacja"),
                          "słowniku do przekodowywania kodów IRK")
     recRegistrations <- recRegistrations %>%
-      select(studia, studia_rec)
+      select(studia, studia_rec, inna_punktacja)
   }
 
   if (mergeType == 2) {
@@ -204,6 +204,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   cat("--------------------\nPrzekształcanie danych.\n")
   dataOnRegistrations <- registrations %>%
+    mutate(wynik = ifelse(inna_punktacja == 0,wynik,NA)) %>% # removes the scores if there is a special scoring scheme for some registration codes.
     group_by(studia,pesel) %>%
     summarise(
       rej = sum(czy_oplacony %in% "1"), # how many times an applicant registered
@@ -270,7 +271,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     warning("Dane nie zostaną zapisane do pliku, ponieważ nie podano jego nazwy.",
             call. = FALSE, immediate. = TRUE)
   } else {
-    write.csv2(dataOnRegistrations, output, row.names = FALSE, na = "",
+    write.table(dataOnRegistrations, output, row.names = FALSE, na = "", dec = ".", sep = ";", quote = FALSE,
                fileEncoding = "UTF-8")
     cat("Zapisano dane do pliku '", output, "'.\n", sep = "")
   }
