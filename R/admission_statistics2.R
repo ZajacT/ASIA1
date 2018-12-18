@@ -218,8 +218,8 @@ admission_statistics2 <- function(groupingVariable = "studia", registrations = N
     warning("Statystyki nie zostaną zapisane do pliku, ponieważ nie podano jego nazwy.",
             call. = FALSE, immediate. = TRUE)
   } else {
-    write.csv2(results, output, row.names = FALSE, na = "",
-               fileEncoding = "UTF-8")
+    write.table(results, output, row.names = FALSE, na = "", dec = ".", sep = ";", quote = FALSE,
+                fileEncoding = "UTF-8")
     cat("Zapisano Statystyki do pliku '", output, "'.\n", sep = "")
   }
   invisible(results)
