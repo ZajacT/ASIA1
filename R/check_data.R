@@ -43,25 +43,25 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   }
   check_input_path(registrations, "registrations")
   registrations <- read_file(registrations)
-
+  
   if (is.null(scores)) {
     scores <- choose_file(" z danymi o punktach rekrutacyjnych")
   }
   check_input_path(scores, "scores")
   scores <- read_file(scores)
-
+  
   if (is.null(exams)) {
     exams <- choose_file(" z danymi o wynikach egzaminów")
   }
   check_input_path(exams, "exams")
   exams <- read_file(exams)
-
+  
   if (is.null(dictionary)) {
     dictionary <- choose_file(" ze słownikiem")
   }
   check_input_path(dictionary, "dictionary")
   dictionary <- read_file(dictionary, columnsToCharacter = FALSE)
-
+  
   if (is.null(output)) {
     output <- choose_file(", w którym mają zostać zapisane wyniki (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
                           errorOnCancel = FALSE)
@@ -72,7 +72,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
       output <- NA
     }
   }
-
+  
   if (!(as.character(groupingVariable) %in% names(registrations))) {
     stop(paste0("Zmienna grupująca podana argumentem groupingVariable ('",
                 groupingVariable, "') nie występuje w danych o rekrutacjach."))
@@ -86,7 +86,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
     stop(paste0("Zmienna grupująca podana argumentem baseGroupingVariable ('",
                 baseGroupingVariable, "') nie występuje w danych o rekrutacjach."))
   }
-
+  
   ## foreign applicants with scholarships
   cat("--------------------\n",
       "Dopisanie informacji o byciu stypendystą zagranicznym do danych o rekrutacjach.\n",
@@ -101,14 +101,14 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
                                    xCheckAllMatchesY = FALSE,
                                    rowsOrObservations = "o") %>%
     mutate(styp = ifelse(is.na(styp), "0" , styp))
-
+  
   cat("--------------------\n",
       "Łączenie pliku z danymi o rekrutacjach z danymi o punktach rekrutacyjnych.\n",
       sep = "")
   registrations <- join_with_check(registrations, scores,
                                    "danych o rekrutacjach",
                                    "danych o punktach rekrutacyjnych")
-
+  
   cat("--------------------\n",
       "Obliczanie statystyk.\n",
       sep = "")
@@ -138,13 +138,14 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
       NPRZ_R = sum(przyjety %in% "R"),
       NPRZ_BD = NREJ - NPRZ_0 - NPRZ_1 - NPRZ_R,
       NPRZ_OBC_STYP = sum(przyjety %in% "1" & styp %in% "1"),
-      NBLPKT = sum(wynik < 0, na.rm = TRUE), # errors
+      NBLPKT = sum(wynik < 0, na.rm = TRUE), # number of observations with a negative number of points
       NBLZAKKAN = sum(!(czy_oplacony %in% "1") & zakwalifikowany %in% "1"),
       NBLPRZZAK = sum(!(zakwalifikowany %in% "1") & przyjety %in% "1"),
       MINWYN = ifelse(is.finite(MINWYN[1]), MINWYN[1], NA),
-      NBLZAKPKT = sum(zakwalifikowany %in% "1" & wynik >= MINWYN & !is.na(wynik))
+      NBLZAKPKT = sum(czy_oplacony %in% "1" & zakwalifikowany %in% "0" & wynik >= MINWYN & !is.na(wynik)) # checks if someone has not been admitted despite having more points than the last admitted.
     ) %>%
     ungroup()
+  
   # adding limits
   dictionary <- dictionary %>%
     group_by(!!groupingVariable) %>%
@@ -161,7 +162,7 @@ check_data <- function(groupingVariable, registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
-
+  
   cat("--------------------\n",
       "Zapisywanie wyników.\n",
       sep = "")
