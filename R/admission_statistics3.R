@@ -1,8 +1,8 @@
 #' @title Summarises admissions without matura exams and minimal number of observations
 #' @description The function computes a set of indicators describing admission process. 
 #' The function differs from admissions_statistics by focusing on the number of administrative 
-#' processes instead of on the number of people. It does not use data on exams and does not check if there is at least 10 observations
-#' when raporting the results.
+#' processes instead of on the number of people. It does not use data on exams and does not check 
+#' if there is at least 10 observations when raporting the results.
 #' @param groupingVariable optionally name of a grouping variable that should be
 #' used in analysis given as a string or as a name/symbol
 #' @param registrations optionally path to the file with data on registrations
@@ -28,9 +28,9 @@
 #' @importFrom rlang ensym
 #' @importFrom stats quantile
 #' @importFrom tidyr gather spread
-#' @importFrom utils write.csv2
+#' @importFrom utils write.table
 #' @export
-admission_statistics3 <- function(groupingVariable = "studia", registrations = NULL,
+admission_statistics3 <- function(groupingVariable = "studia", registrations = NULL, exams = NULL,
                                  limits = NULL, output = NULL) {
   errorGroupingVariableFormatMessage = "Zmienna grupująca musi zostać podana jako ciąg znaków (jednoelementowy wektor typu character) lub jako wyrażenie (nazwa zmiennej nie ujęta w cudzysłów)."
   groupingVariable <-
@@ -67,6 +67,24 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
   check_variable_values(registrations$pkt_zak, valMin = 0)
   check_variable_values(registrations$pkt_kan, valMin = 0)
 
+  if (is.null(exams)) {
+    exams <- choose_file(" z danymi o wynikach egzaminów")
+  }
+  check_input_path(exams, "exams")
+  exams <- read_file(exams)
+  cat("--------------------\n",
+      "Sprawdzanie poprawności danych w pliku z wynikami egzaminów.\n",
+      sep = "")
+  check_variable_names(exams,
+                       c("pesel", "egzamin", "wynik_p", "wynik_r"),
+                       "danych o egzaminach")
+  exams <- exams %>%
+    select(egzamin, pesel, wynik_p, wynik_r)
+  exams[, 2:4] <- suppressWarnings(
+    sapply(exams[, 2:4], as.numeric))
+  check_variable_values(exams$wynik_p, valMin = 0, valMax = 100)
+  check_variable_values(exams$wynik_r, valMin = 0, valMax = 100)
+  
   if (is.null(limits)) {
     limits <- choose_file(" limitami przyjęć")
   }
@@ -163,6 +181,48 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
     mutate_all(dplyr::funs(ifelse(. == -Inf, NA, .))) %>%
     mutate_all(dplyr::funs(ifelse(. == Inf, NA, .)))
 
+  #-----------------------------------------------------------------------------
+  #|-> Exam scores
+  #-----------------------------------------------------------------------------
+  exams <- exams %>%
+    filter(grepl("^M_", egzamin)) %>%
+    select(pesel, egzamin, wynik_p, wynik_r) %>%
+    gather(poziom, wynik, -pesel, -egzamin) %>%
+    mutate(egzamin = paste0(egzamin, sub("wynik", "", poziom))) %>%
+    select(-poziom) %>%
+    group_by(pesel, egzamin) %>%
+    summarise(wynik = max(wynik)) %>%
+    ungroup()
+  exams <- suppressMessages(semi_join(exams, registrations))
+  
+  matResults <- suppressMessages(registrations %>%
+                                   filter(prz > 0) %>%
+                                   inner_join(exams)) %>%
+    group_by(!!groupingVariable, egzamin) %>%
+    mutate(LICZ_Q = sum(!is.na(wynik)) > 9,
+           wynik = ifelse(LICZ_Q, wynik, NA)) %>%
+    summarise(PN = sum(!is.na(wynik)),
+              PPROC = round(PN / n(), 2)*100,
+              PSR = round(mean(wynik, na.rm = TRUE), 0),
+              PD1 = round(quantile(wynik, probs = 0.10, na.rm = TRUE), 0),
+              PQ1 = round(quantile(wynik, probs = 0.25, na.rm = TRUE), 0),
+              PQ3 = round(quantile(wynik, probs = 0.75, na.rm = TRUE), 0),
+              PD9 = round(quantile(wynik, probs = 0.90, na.rm = TRUE), 0)) %>%
+    mutate(PN = ifelse(PN == 0, NA, PN),
+           PPROC = ifelse(PN == 0, NA, PPROC)) %>%
+    ungroup() %>%
+    gather(statystyka, wartosc, -!!groupingVariable, -egzamin) %>%
+    arrange(egzamin) %>% # this is meant to arrange records in a way that spread command does not change the order of columns
+    mutate(statystyka = paste0(egzamin, "_", statystyka),
+           statystyka = factor(statystyka, levels = unique(statystyka))) %>% # this is meant to fix the desired order of columns after spread is executed
+    select(-egzamin) %>%
+    spread(statystyka, wartosc)
+  
+  cat("\n---\nPrzyłączanie danych o wynikach egzaminów maturalnych.\n")
+  results <- join_with_check(results, matResults,
+                             "danych o przyjęciach",
+                             "danych o wynikach maturalnych")  
+  
   #-----------------------------------------------------------------------------
   #|-> Here ends summarising the data
   #-----------------------------------------------------------------------------
