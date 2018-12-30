@@ -24,7 +24,7 @@
 #'                        "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
 #'                        "statistics.csv")
 #' }
-#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise
+#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise first n_distinct
 #' @importFrom rlang ensym
 #' @importFrom stats quantile
 #' @importFrom tidyr gather spread
@@ -94,16 +94,14 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
       "Sprawdzanie poprawności danych w pliku z limitami.\n",
       sep = "")
   check_variable_names(limits,
-                       c(as.character(groupingVariable), "limitog", "limitp",
-                         "limitc", "maxpkt"),
+                       c(as.character(groupingVariable), "limitog", "jednostka",
+                         "maxpkt"),
                        "danych o limitach")
   limits <- limits %>%
-    select(!!groupingVariable, limitog, limitp, limitc, maxpkt)
-  limits[, 2:5] <- suppressWarnings(
-    sapply(limits[, 2:5], as.numeric))
+    select(!!groupingVariable, limitog, maxpkt, jednostka)
+  limits[, 2:3] <- suppressWarnings(
+    sapply(limits[, 2:3], as.numeric))
   check_variable_values(limits$limitog, valMin = 0, valMax = 10000)
-  check_variable_values(limits$limitp, valMin = 0, valMax = 10000)
-  check_variable_values(limits$limitc, valMin = 0, valMax = 10000)
   check_variable_values(limits$maxpkt, valMin = 0)
 
   if (is.null(output)) {
@@ -159,8 +157,7 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
     group_by(!!groupingVariable) %>%
     summarise(
       LIM_OG = sum(limitog, na.rm = TRUE),
-      LIM_P = sum(limitp, na.rm = TRUE),
-      LIM_C = sum(limitc, na.rm = TRUE),
+      JEDNOSTKA = ifelse(dplyr::n_distinct(jednostka) == 1, dplyr::first(jednostka),NA),
       MAXPKT = max(maxpkt, na.rm = TRUE)
     ) %>%
     ungroup()
@@ -197,12 +194,15 @@ admission_statistics3 <- function(groupingVariable = "studia", registrations = N
   
   matResults <- suppressMessages(registrations %>%
                                    filter(prz > 0) %>%
+                                   group_by(!!groupingVariable) %>%
+                                   mutate(N = sum(prz)) %>%
+                                   ungroup() %>%
                                    inner_join(exams)) %>%
     group_by(!!groupingVariable, egzamin) %>%
     mutate(LICZ_Q = sum(!is.na(wynik)) > 9,
            wynik = ifelse(LICZ_Q, wynik, NA)) %>%
     summarise(PN = sum(!is.na(wynik)),
-              PPROC = round(PN / n(), 2)*100,
+              PPROC = round(PN / max(N,na.rm = TRUE), 2)*100,
               PSR = round(mean(wynik, na.rm = TRUE), 0),
               PD1 = round(quantile(wynik, probs = 0.10, na.rm = TRUE), 0),
               PQ1 = round(quantile(wynik, probs = 0.25, na.rm = TRUE), 0),
