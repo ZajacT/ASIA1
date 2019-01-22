@@ -5,9 +5,10 @@
 #' if there is at least 10 observations when raporting the results.
 #' @param groupingVariable optionally name of a grouping variable that should be
 #' used in analysis given as a string or as a name/symbol
-#' @param registrations optionally path to the file with data on registrations
-#' @param limits optionally path to the file with data on limits
-#' @param output optionally path to the file in which results will be saved;
+#' @param registrations optionally path to a file with data on registrations
+#' @param limits optionally path to a file with data on limits
+#' @param output optionally path to a file in which results will be saved;
+#' @param exams optionally path to a file with data on matura exams
 #' if \code{NA} is given as a value of this parameter, results won't be saved
 #' to a file
 #' @details

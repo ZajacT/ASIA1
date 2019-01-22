@@ -5,19 +5,21 @@
 \title{Summarises admissions without matura exams and minimal number of observations}
 \usage{
 admission_statistics3(groupingVariable = "studia",
-  registrations = NULL, limits = NULL, output = NULL)
+  registrations = NULL, exams = NULL, limits = NULL, output = NULL)
 }
 \arguments{
 \item{groupingVariable}{optionally name of a grouping variable that should be
 used in analysis given as a string or as a name/symbol}
 
-\item{registrations}{optionally path to the file with data on registrations}
+\item{registrations}{optionally path to a file with data on registrations}
 
-\item{limits}{optionally path to the file with data on limits}
-
-\item{output}{optionally path to the file in which results will be saved;
+\item{exams}{optionally path to a file with data on matura exams
 if \code{NA} is given as a value of this parameter, results won't be saved
 to a file}
+
+\item{limits}{optionally path to a file with data on limits}
+
+\item{output}{optionally path to a file in which results will be saved;}
 }
 \value{
 Data frame (tibble) with computed summary statistics - the same as
@@ -27,8 +29,8 @@ returned invisibly).
 \description{
 The function computes a set of indicators describing admission process. 
 The function differs from admissions_statistics by focusing on the number of administrative 
-processes instead of on the number of people. It does not use data on exams and does not check if there is at least 10 observations
-when raporting the results.
+processes instead of on the number of people. It does not use data on exams and does not check 
+if there is at least 10 observations when raporting the results.
 }
 \details{
 Location of files contaninig the data to be checked and location of file
