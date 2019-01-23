@@ -262,10 +262,23 @@ prepare_registrations3 <- function(registrations = NULL, scores = NULL,
                                                                 dataOnRegistrations)),
                                      "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
-      mutate(prz = ifelse(przyjetyUsos >= ranga_do_prz,1,0)) #%>%
-      #select(-przyjetyUsos)
+      mutate(prz = ifelse(przyjetyUsos >= ranga_do_prz,1,0)) %>%
+      select(-przyjetyUsos)
   }
+
+  #-----------------------------------------------------------------------------
+  #|-> Here variables are renamed and ordered
+  #-----------------------------------------------------------------------------  
   
+  dataOnRegistrations <- dataOnRegistrations %>%
+    rename(rej = czy_oplacony,
+           zak = zakwalifikowany,
+           pkt_org = wynik) %>%
+    mutate(pkt = ifelse(inna_punktacja == 0,pkt_org,NA),
+           prz = ifelse(is.na(prz),0,prz)) %>%
+    select(pesel,studia,studia_org,tura,rej,zak,prz,pkt,pkt_org) %>%
+    filter(rej %in% "1") %>%
+    arrange(studia,studia_org,desc(prz),desc(zak),desc(pkt))
   
   #-----------------------------------------------------------------------------
   #|-> Here writing results to a file starts
