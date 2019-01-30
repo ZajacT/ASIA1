@@ -23,7 +23,7 @@
 #'   \item{In any other case function returns invisibly a data frame with
 #'   corrected data on registrations.}
 #' }
-#' @importFrom dplyr filter group_by mutate n one_of rename semi_join summarise
+#' @importFrom dplyr filter group_by mutate n one_of rename semi_join summarise percent_rank
 #' @importFrom utils write.csv2
 #' @examples
 #' \dontrun{
