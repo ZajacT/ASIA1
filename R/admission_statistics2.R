@@ -25,10 +25,10 @@
 #'                        "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
 #'                        "statistics.csv")
 #' }
-#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise first n_distinct
+#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise first n_distinct case_when
 #' @importFrom rlang ensym
 #' @importFrom stats quantile
-#' @importFrom tidyr gather spread
+#' @importFrom tidyr gather spread unite
 #' @importFrom utils write.table
 #' @export
 admission_statistics2 <- function(groupingVariable = "studia", registrations = NULL, exams = NULL,
@@ -121,13 +121,14 @@ admission_statistics2 <- function(groupingVariable = "studia", registrations = N
       "Obliczanie statystyk.\n",
       sep = "")
   results <- registrations %>%
+    mutate(pkt_prz = ifelse(prz %in% "1",pkt,NA)) %>%
     group_by(!!groupingVariable) %>%
   # summarising
   summarise(
-    NREJ = sum(rej), # total number of registrations - it is possible that a candidate registers more than once
-    NZAK = sum(zak), # number of registrations resulting in admission
-    NPRZ = sum(prz), # number of registrations resulting in enrollment.
-    KAN_PKT_NNa = sum(!is.na(pkt) & rej > 0),
+    NREJ = sum(rej %in% "1"), # total number of registrations - it is possible that a candidate registers more than once
+    NZAK = sum(zak %in% "1"), # number of registrations resulting in admission
+    NPRZ = sum(prz %in% "1"), # number of registrations resulting in enrollment.
+    KAN_PKT_NNa = sum(!is.na(pkt) & rej %in% "1"),
     KAN_PKT_MIN = round(min(pkt, na.rm = TRUE), 0),
     KAN_PKT_D1 = round(quantile(pkt, probs = 0.10,  na.rm = TRUE), 0),
     KAN_PKT_Q1 = round(quantile(pkt, probs = 0.25,  na.rm = TRUE), 0),
@@ -137,18 +138,51 @@ admission_statistics2 <- function(groupingVariable = "studia", registrations = N
     KAN_PKT_RANGE = round(max(pkt, na.rm = TRUE)-min(pkt, na.rm = TRUE), 0),
     KAN_PKT_IQR = round(IQR(pkt, na.rm = TRUE), 0),
     KAN_PKT_MEA = round(mean(pkt, na.rm = TRUE), 0),
-    PRZ_PKT_NNa = sum(!is.na(pkt) & prz > 0),
-    PRZ_PKT_MIN = round(min(pkt, na.rm = TRUE), 0),
-    PRZ_PKT_D1 = round(quantile(pkt, probs = 0.10,  na.rm = TRUE), 0),
-    PRZ_PKT_Q1 = round(quantile(pkt, probs = 0.25,  na.rm = TRUE), 0),
-    PRZ_PKT_Q3 = round(quantile(pkt, probs = 0.75,  na.rm = TRUE), 0),
-    PRZ_PKT_D9 = round(quantile(pkt, probs = 0.90,  na.rm = TRUE), 0),
-    PRZ_PKT_MAX = round(max(pkt, na.rm = TRUE), 0),
-    PRZ_PKT_RANGE = round(max(pkt, na.rm = TRUE)-min(pkt, na.rm = TRUE), 0),
-    PRZ_PKT_IQR = round(IQR(pkt, na.rm = TRUE), 0),
-    PRZ_PKT_MEA = round(mean(pkt, na.rm = TRUE), 0)
+    PRZ_PKT_NNa = sum(!is.na(pkt) & prz %in% "1"),
+    PRZ_PKT_MIN = round(min(pkt_prz, na.rm = TRUE), 0),
+    PRZ_PKT_D1 = round(quantile(pkt_prz, probs = 0.10,  na.rm = TRUE), 0),
+    PRZ_PKT_Q1 = round(quantile(pkt_prz, probs = 0.25,  na.rm = TRUE), 0),
+    PRZ_PKT_Q3 = round(quantile(pkt_prz, probs = 0.75,  na.rm = TRUE), 0),
+    PRZ_PKT_D9 = round(quantile(pkt_prz, probs = 0.90,  na.rm = TRUE), 0),
+    PRZ_PKT_MAX = round(max(pkt_prz, na.rm = TRUE), 0),
+    PRZ_PKT_RANGE = round(max(pkt_prz, na.rm = TRUE)-min(pkt, na.rm = TRUE), 0),
+    PRZ_PKT_IQR = round(IQR(pkt_prz, na.rm = TRUE), 0),
+    PRZ_PKT_MEA = round(mean(pkt_prz, na.rm = TRUE), 0)
   ) %>%
     ungroup()
+  
+  
+  rozklad_punktow <- registrations %>%
+    filter(prz %in% "1") %>%
+    select(!!groupingVariable,pkt) %>%
+    group_by(!!groupingVariable) %>%
+    mutate(n_pkt = sum(pkt >= 0 & pkt <= 100 & !is.na(pkt)),
+           max_pkt = max(pkt,na.rm = TRUE)) %>%
+    mutate(
+      punkty = dplyr::case_when(
+        pkt < 20 ~ "0",
+        pkt < 30 ~ "20",
+        pkt < 40 ~ "30",
+        pkt < 50 ~ "40",
+        pkt < 60 ~ "50",
+        pkt < 70 ~ "60",
+        pkt <= 100 ~ "70"
+      )
+    ) %>%
+    mutate(punkty = ifelse(max_pkt > 100 | max_pkt <= 50, NA, punkty)) %>%
+    ungroup() %>%
+    filter(!is.na(punkty)) %>%
+    group_by(!!groupingVariable,n_pkt,punkty) %>%
+    summarise(N = n()) %>%
+    mutate(Proc = round(N/n_pkt,2)) %>%
+    ungroup() %>%
+    select(-n_pkt,-N) %>%
+    gather(zmienna, wartosc, -(!!groupingVariable:punkty)) %>%
+    tidyr::unite(temp,zmienna,punkty) %>%
+    spread(temp,wartosc)
+
+  results <- results %>%
+    left_join(rozklad_punktow)
   
   # adding limits
   limits <- limits %>%
@@ -191,7 +225,7 @@ admission_statistics2 <- function(groupingVariable = "studia", registrations = N
   exams <- suppressMessages(semi_join(exams, registrations))
   
   matResults <- suppressMessages(registrations %>%
-                                   filter(prz > 0) %>%
+                                   filter(prz %in% "1") %>%
                                    group_by(!!groupingVariable) %>%
                                    mutate(N = sum(prz)) %>%
                                    ungroup() %>%
