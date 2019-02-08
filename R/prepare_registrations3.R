@@ -61,7 +61,8 @@ prepare_registrations3 <- function(registrations = NULL, scores = NULL,
     return(invisible(registrationsChecked))
   }
   registrations = registrationsChecked %>%
-    select(studia,pesel,czy_oplacony)
+    select(studia,pesel,czy_oplacony) %>%
+    mutate(pesel = as.numeric(pesel))
   rm(registrationsChecked)
   cat("--------------------\n")
 
@@ -87,7 +88,8 @@ prepare_registrations3 <- function(registrations = NULL, scores = NULL,
     return(invisible(scoresChecked))
   }
   scores = scoresChecked %>%
-    select(pesel, studia, wynik, zakwalifikowany,przyjety)
+    select(pesel, studia, wynik, zakwalifikowany,przyjety) %>%
+    mutate(pesel = as.numeric(pesel))
   rm(scoresChecked)
   #-----------------------------------------------------------------------------
   #|-> Data merging begins here
@@ -159,7 +161,8 @@ prepare_registrations3 <- function(registrations = NULL, scores = NULL,
       usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
     }
     check_input_path(usosAdmission, "usosAdmission")
-    usosAdmission <- read_file(usosAdmission)
+    usosAdmission <- read_file(usosAdmission) %>%
+      mutate(pesel = as.numeric(pesel))
     check_variable_names(usosAdmission,
                          c("pesel", "program", "etap"),
                          "zbiorze z danymi o przyjęciach na studiach weksportowanymi z USOS")
