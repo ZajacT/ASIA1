@@ -1,9 +1,8 @@
 #' @title Preparing recrutation data for analysis
 #' @description Function creates a corrected dataset on registrations that is
 #' suitable for final analysis. Operations: checking against USOS records on
-#' acepted applicants, checking and correcting multiple registrations i.e. cases
-#' that an applicant applies more than one time to a given program, adding data
-#' on scores to the data on registrations.
+#' acepted applicants, checking and correcting selected data.
+#' Each registration is treated separate case.
 #' @param registrations optionally a path to the file with data on registrations
 #' @param scores optionally a path to the file with data on recruitment scores
 #' @param output optionally a path to the file in which results will be saved
@@ -21,7 +20,7 @@
 #'   \item{In any other case function returns invisibly a data frame with
 #'   corrected data on registrations.}
 #' }
-#' @importFrom dplyr filter group_by mutate n one_of rename semi_join summarise
+#' @importFrom dplyr filter group_by mutate n one_of rename semi_join summarise percent_rank
 #' @importFrom utils write.csv2
 #' @examples
 #' \dontrun{
@@ -43,7 +42,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   check_input_path(registrations, "registrations")
   registrations <- read_file(registrations)
   cat("---\nSprawdzanie poprawności danych o rekrutacjach.\n\n")
-  registrationsChecked <- check_registrations(registrations)
+  registrationsChecked <- check_registrations2(registrations)
   if (ncol(registrationsChecked) > ncol(registrations)) {
     cat("---\n")
     file <- choose_file(", w którym mają zostać zapisane dane o rekrutacjach z oznaczonymi problemami (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
@@ -58,7 +57,9 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     }
     return(invisible(registrationsChecked))
   }
-  registrations = registrationsChecked
+  registrations = registrationsChecked %>%
+    select(studia,pesel,czy_oplacony) %>%
+    mutate(pesel = as.numeric(pesel))
   rm(registrationsChecked)
   cat("--------------------\n")
 
@@ -68,7 +69,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   check_input_path(scores, "scores")
   scores <- read_file(scores)
   cat("---\nSprawdzanie poprawności danych o punktach rekrutacyjnych.\n\n")
-  scoresChecked <- check_scores(scores)
+  scoresChecked <- check_scores2(scores)
   if (ncol(scoresChecked) > ncol(scores)) {
     cat("---\n")
     file <- choose_file(", w którym mają zostać zapisane dane o punktach rekrutacyjnych z oznaczonymi problemami (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
@@ -84,8 +85,8 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     return(invisible(scoresChecked))
   }
   scores = scoresChecked %>%
-    select(-one_of(setdiff(intersect(names(scores), names(registrations)),
-                           c("pesel", "studia"))))
+    select(pesel, studia, wynik, zakwalifikowany,przyjety) %>%
+    mutate(pesel = as.numeric(pesel))
   rm(scoresChecked)
   #-----------------------------------------------------------------------------
   #|-> Data merging begins here
@@ -103,7 +104,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   cat("--------------------\n",
       "Sprawdzanie poprawności połączonych danych o rekrutacjach i o punktach rekrutacyjnych.\n\n", sep = "")
-  registrations = check_registrations_with_scores(registrations)
+  registrations = check_registrations_with_scores2(registrations)
 
   #-----------------------------------------------------------------------------
   #|-> Here starts the merging of IRK and USOS records
@@ -146,10 +147,10 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
     }
     recRegistrations <- read_file(recRegistrations, columnsToCharacter = FALSE)
     check_variable_names(recRegistrations,
-                         c("studia", "studia_rec","inna_punktacja"),
+                         c("studia", "studia_rec","inna_punktacja", "tura"),
                          "słowniku do przekodowywania kodów IRK")
     recRegistrations <- recRegistrations %>%
-      select(studia, studia_rec, inna_punktacja)
+      select(studia, studia_rec, inna_punktacja,tura)
   }
 
   if (mergeType == 2) {
@@ -157,7 +158,8 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
       usosAdmission <- choose_file(" z danymi o przyjęciach na studiach weksportowanymi z USOS")
     }
     check_input_path(usosAdmission, "usosAdmission")
-    usosAdmission <- read_file(usosAdmission)
+    usosAdmission <- read_file(usosAdmission) %>%
+      mutate(pesel = as.numeric(pesel))
     check_variable_names(usosAdmission,
                          c("pesel", "program", "etap"),
                          "zbiorze z danymi o przyjęciach na studiach weksportowanymi z USOS")
@@ -177,6 +179,16 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   #|-> Recoding programme codes in data on registrations
   #-----------------------------------------------------------------------------
+  
+  registrations <- registrations %>%
+    mutate(studia_org = studia)
+  
+  if (recIRK == 1) {
+    registrations <- registrations %>%
+      mutate(tura = 1,
+             inna_punktacja = 0)
+  }
+  
   if (recIRK == 2) {
     cat("--------------------\n",
         "Przekodowywanie kodów studiów w pliku z danymi o rekrutacjach.\n",
@@ -200,20 +212,19 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   }
 
   #-----------------------------------------------------------------------------
-  #|-> Here the merging of the records starts
+  #|-> Here the merging of records starts
   #-----------------------------------------------------------------------------
   cat("--------------------\nPrzekształcanie danych.\n")
+  
   dataOnRegistrations <- registrations %>%
-    mutate(wynik = ifelse(inna_punktacja == 0,wynik,NA)) %>% # removes the scores if there is a special scoring scheme for some registration codes.
-    group_by(studia,pesel) %>%
-    summarise(
-      rej = sum(czy_oplacony %in% "1"), # how many times an applicant registered
-      zak = sum(zakwalifikowany %in% "1"), # how many times an applicant was accepted
-      prz = sum(przyjety %in% "1"), # how many times an applicant enrolled
-      pkt = suppressWarnings(
-        max(wynik[!is.na(wynik)])) # the highest achieved score
-    ) %>%
-    mutate(pkt = ifelse(pkt == -Inf, NA, pkt)) %>%
+    group_by(pesel,studia_org) %>% # determining the rank of each application (using original codes)
+    mutate(pozycja = percent_rank(wynik),
+           tura = ifelse(is.na(tura),1,tura)) %>%
+    ungroup() %>%
+    group_by(pesel, studia) %>% # estabilishing the "eligibility" rankig of applications 
+    arrange(desc(zakwalifikowany),desc(przyjety),desc(tura),desc(pozycja)) %>%  
+    mutate(ranga_do_prz = row_number(),
+           ranga_do_prz = ifelse(zakwalifikowany %in% "1",ranga_do_prz,NA)) %>%
     ungroup()
   
   #-----------------------------------------------------------------------------
@@ -251,12 +262,23 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
                                                                 dataOnRegistrations)),
                                      "danych o rejestracjach z IRK",
                                      "danych o przyjęciach z USOS") %>%
-      mutate(przyjetyUsos = ifelse(is.na(przyjetyUsos), "0", przyjetyUsos)) %>%
-      mutate(prz = ifelse(przyjetyUsos > 0 & zak %in% "0" ,
-                               "0", przyjetyUsos )) %>%
+      mutate(prz = ifelse(przyjetyUsos >= ranga_do_prz,1,0)) %>%
       select(-przyjetyUsos)
   }
+
+  #-----------------------------------------------------------------------------
+  #|-> Here variables are renamed and ordered
+  #-----------------------------------------------------------------------------  
   
+  dataOnRegistrations <- dataOnRegistrations %>%
+    rename(rej = czy_oplacony,
+           zak = zakwalifikowany,
+           pkt_org = wynik) %>%
+    mutate(pkt = ifelse(inna_punktacja == 0,pkt_org,NA),
+           prz = ifelse(is.na(prz),0,prz)) %>%
+    select(pesel,studia,studia_org,tura,rej,zak,prz,pkt,pkt_org) %>%
+    filter(rej %in% "1") %>%
+    arrange(studia,studia_org,desc(prz),desc(zak),desc(pkt))
   
   #-----------------------------------------------------------------------------
   #|-> Here writing results to a file starts
