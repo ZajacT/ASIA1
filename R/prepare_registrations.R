@@ -42,7 +42,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   check_input_path(registrations, "registrations")
   registrations <- read_file(registrations)
   cat("---\nSprawdzanie poprawności danych o rekrutacjach.\n\n")
-  registrationsChecked <- check_registrations2(registrations)
+  registrationsChecked <- check_registrations(registrations)
   if (ncol(registrationsChecked) > ncol(registrations)) {
     cat("---\n")
     file <- choose_file(", w którym mają zostać zapisane dane o rekrutacjach z oznaczonymi problemami (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
@@ -69,7 +69,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   check_input_path(scores, "scores")
   scores <- read_file(scores)
   cat("---\nSprawdzanie poprawności danych o punktach rekrutacyjnych.\n\n")
-  scoresChecked <- check_scores2(scores)
+  scoresChecked <- check_scores(scores)
   if (ncol(scoresChecked) > ncol(scores)) {
     cat("---\n")
     file <- choose_file(", w którym mają zostać zapisane dane o punktach rekrutacyjnych z oznaczonymi problemami (plik zostanie zapisany w formacie CSV ze średnikiem jako separatorem pola)",
@@ -104,7 +104,7 @@ prepare_registrations <- function(registrations = NULL, scores = NULL,
   #-----------------------------------------------------------------------------
   cat("--------------------\n",
       "Sprawdzanie poprawności połączonych danych o rekrutacjach i o punktach rekrutacyjnych.\n\n", sep = "")
-  registrations = check_registrations_with_scores2(registrations)
+  registrations = check_registrations_with_scores(registrations)
 
   #-----------------------------------------------------------------------------
   #|-> Here starts the merging of IRK and USOS records
