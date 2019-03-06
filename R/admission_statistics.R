@@ -25,7 +25,7 @@
 #'                        "inst/as_egzaminy.xlsx", "inst/as_limity.xlsx",
 #'                        "statistics.csv")
 #' }
-#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise first n_distinct case_when starts_with
+#' @importFrom dplyr arrange filter group_by inner_join mutate mutate_all n semi_join summarise first n_distinct case_when starts_with matches
 #' @importFrom rlang ensym
 #' @importFrom stats quantile
 #' @importFrom tidyr gather spread unite
@@ -283,17 +283,20 @@ admission_statistics <- function(groupingVariable = "studia", registrations = NU
   
   if(n_check == 2){
     results <- results %>%
+      filter(NREJ > 9) %>%
       select(
         program = !!groupingVariable, 
         NPRZ,
         KM,
         ZK,
         MAXPKT,
+        PRZ_PKT_MEA,
         PRZ_PKT_D1,
         PRZ_PKT_Q1,
         PRZ_PKT_Q3,
         PRZ_PKT_D9,
-        dplyr::starts_with("M_")
+        dplyr::starts_with("M_"),
+        -dplyr::matches("_PN")
       )
   }
   
